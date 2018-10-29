@@ -1,0 +1,15 @@
+Stos technologiczny:
+
+Notepad (edytor)
+
+HTML5
+
+CSS
+
+JavaScript
+
+PHP
+
+Baza PostgreSQL
+
+Github
