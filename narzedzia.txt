@@ -1,0 +1,11 @@
+
+Lista narzędzi używanych przy realizacji projektu:
+
+- code review
+
+- project management 
+
+- issue tracking 
+
+- repozytorium
+
