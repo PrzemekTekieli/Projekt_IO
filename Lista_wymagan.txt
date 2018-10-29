@@ -1,1 +1,7 @@
 
+Lista zebranych wymagań:
+- stworzona gra ma być typu MUD (multi user dungeon);
+- gra ma korzystać z przeglądarki;
+- rozgrywka odbywa się poprzez wymienianie komunikatów tekstowych z serwerem;
+- edytor umożliwiający rozszerzenie świata gry o nowe przedmioty i nowych przeciwników;
+- możliwość interakcji z innymi graczami (walka, komunikacja, handel).
