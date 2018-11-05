@@ -1,0 +1,7 @@
+Projekt testów będzie obejmował:
+
+- testy prawidłowego logowania;
+
+- testy wysyłania niekompletnych, nieistniejących, niepoprawnych komend;
+
+- testy zachowań przy niepoprawnym opuszczeniu gry;
