@@ -1,0 +1,11 @@
+
+Interfejs kliencki:
+
+- komunikuje się z serwerem
+
+- przekazuje polecenia napisane przez użytkownika
+
+- odbiera informacje wysłane przez serwer
+
+Interfejs kliencki łączy się z serwerem przy pomocy socket-a, i służy do komunikacji klient-serwer. Pozwala na wysyłanie komend
+na serwer, oraz pobiera wszelkie informacje wysyłane przez serwer do klienta.
