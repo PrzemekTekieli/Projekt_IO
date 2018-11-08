@@ -1,12 +1,34 @@
 
 Lista zebranych wymagań:
 
-- stworzona gra ma być typu MUD (multi user dungeon);
+- stworzona gra ma być typu MUD (multi user dungeon)
 
-- gra ma korzystać z przeglądarki;
+- gra ma korzystać z przeglądarki
 
-- rozgrywka odbywa się poprzez wymienianie komunikatów tekstowych z serwerem;
+- rozgrywka odbywa się poprzez wymienianie komunikatów tekstowych z serwerem
 
-- edytor umożliwiający rozszerzenie świata gry o nowe przedmioty i nowych przeciwników;
+- edytor umożliwiający rozszerzenie świata gry o nowe przedmioty i nowych przeciwników
 
-- możliwość interakcji z innymi graczami (walka, komunikacja, handel).
+- możliwość interakcji z innymi graczami (walka, komunikacja, handel)
+
+- gracz może poruszać się w 4 kierunkach
+
+- na mapie gracz może spotkać: przeciwników sterowanych przez komputer, inny graczy, bohaterów niezależnych (NPC)
+
+- na mapię mogę się znajdować przeszkody uniemożliwiające wejście na dane pole
+
+- gracz może atakować potwory na mapie, które po swojej śmierci pozostawiają złoto i zwiększają doświadczenie gracz
+
+- z jednym potworem może w danym momencie może walczyć tylko jeden gracz
+
+- po zdobyciu pewnej ilości doświadczenia gracz awansuje na wyższy poziom, co wiąże się ze zwiększeniem podstawowych statystyk
+
+- zdoby ekwipunek wpływa na statystyki gracza
+
+- przedmioty można zakupić u niektórych NPC
+
+- NPC mogą również dać graczowi losowe misje, polegające np. na zabiciu potwora, dotarciu w jakieś miejsce, czy przyniesienie przedmiotu
+
+- gdy gracz umrze to traci część zgromadzonego złota oraz doświadczenia
+
+- po śmierci gracz trafia na z góry ustalone pole
