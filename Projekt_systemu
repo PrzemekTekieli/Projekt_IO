@@ -1,0 +1,76 @@
+Projekt systemu:
+
+Autorzy:
+Przemysław Boroń
+Wojciech Łupina
+Jerzy Markiewicz
+Przemysław Tekieli
+
+Tematem projektu jest stworzenie gry typu MUD, razem z edytorem pozwalającym rozbudowywać świat gry o nowe elementy. Dodatkowo dostarczona zostanie również dokumentacja oraz testy pokrywające działanie systemu.
+
+
+Lista zebranych wymagań:
+Gra ma zostać stworzona zgodznie z zasadami gier MUD-owych. Inspiracją może być gra MUME oraz reguły z gry "Dungeons and Dragons"
+
+Przyjęte wymagania na podstawie ogólnych zasad działania MUD-ów:
+- gra ma korzystać z przeglądarki
+- rozgrywka odbywa się poprzez wymienianie komunikatów tekstowych z serwerem
+- gracz może poruszać się w 4 kierunkach
+- na mapię mogę się znajdować przeszkody uniemożliwiające ruch z konkretnego pola w danym kierunku
+- na mapie gracz może spotkać: przeciwników sterowanych przez komputer (mob-y), innych graczy oraz bohaterów niezależnych (NPC)
+- gracz może atakować mob-y na mapie, które po swojej śmierci pozostawiają złoto i zwiększają doświadczenie gracza
+- z jednym potworem może w danym momencie może walczyć tylko jeden gracz
+- po zdobyciu pewnej ilości doświadczenia gracz awansuje na wyższy poziom, co wiąże się ze zwiększeniem podstawowych statystyk
+- zdoby ekwipunek wpływa na statystyki gracza
+- przedmioty można zakupić u niektórych NPC
+- NPC mogą również dać graczowi misje do wykonania
+- gdy gracz umrze to traci część zgromadzonego złota oraz doświadczenia
+- po śmierci gracz trafia na z góry ustalone pole
+
+Zebrane wymagania odnośnie projektu:
+- oprócz gry ma zostać dostarczony edytor świata
+- edytor pozwala na modyfikację gry w pełnym zakresie, można modyfikować m.in. parametry (jak np. ile doświadczenia traci się przy poziomie), ale także przeciwników, lokacje i misje, co pozwala np. tworzyć zupełnie nowych wrogów, i rozbudowywać obszar gry
+- jeżeli byłoby dużo różnych parametrów do modyfikacji, to mogą się one znaleźć w oddzielnym pliku, w którym będą modyfikowane, ale główna część ma być modyfikowalna w edytorze graficznym
+- są 3 rodzaje misji: polegające na: zabiciu iluś potworów / na w jakieś miejsce lub rozmowę z innym NPC / przyniesieniu przedmiotu
+- przeciwnicy dzielą się na agresywnych i pasywnych, np. przeciwnik "krowa" będzie pasywna, za to "pająk" będzie agresywny, czyli sam nas zaatakuje
+- podstawowe statystyki identyfikujące postacie na mapie to: życie, mana, atak, obrona. Te statystyki zwiększają się przy zdobywaniu kolejny poziomów doświadczenia przez postać
+- ze względu na obecność w grze "many" lub innego źródła energii magicznej, w grze będą występować podstawowe zaklęcia wykorzystujące manę
+
+
+Architektura systemu:
+System będzie wykorzystywał znany wzorzec architektoniczny Model-Widok-Kontroler (Model-View-Controller) - MVC. W naszym systemie będą wyodrębnione 3 komponenty:
+1. interfejs użytkownika
+2. logika sterowania
+3. model danych
+Zaletą jest odseparowanie części widocznej przez użytkownika od logiki systemu oraz sposobu przechowywania danych.
+System składa się z dwóch części, pierwszą z nich jest grywalna część, a drugą edytor.
+Dla części grywalnej:
+
+[tu wrzucić to co na "page4" draw.io tak żeby miało sens]
+
+Widokiem jest część strony widoczna przez klienta, "terminal" wyświetlający informacje otrzymane z serwera, i pozwalający wysyłać własne polecenia. Wiele widoków łączy się z tym samym kontrolerem.
+Kontroler to nasz "serwer". Służy on za wysyłanie informacji do widoków, oraz za przetwarzanie otrzymach od nich poleceń w celu sprawdzenia czy polecenia są poprawne, a jeśli tak to prześle je do modelu, w formie dla niego zrozumiałej.
+Modelem jest baza danych, w której znajdują się wszystko informacje o grze. Kontroler łączy się z nią i przesyła zapytania SQL, a baza zwraca rezultaty tych zapytań, które po przetworzeniu przez kontroler trafią do widoku.
+
+Dla edytora:
+
+[tu wrzucić to co na "Edytor" draw.io tak żeby miało sens (te klasy pod napisem "Prototyp")]
+
+Widokiem jest edytor, wyświetlający edytowane dane, które można w tym miejscu zmieniać. Dane są pobierane z bazy danych, za pośrednictwem kontrolera, tak samo zmiany są wysyłane do kontrolera, który potem wyśle je do bazy danych
+Kontroler jest to pośrednik wymiany danych między widokiem a modelem, przede wszystkim zajmuje się przetwarzaniem danych otrzymanych od widoku w taki sposób żeby zrozumiał je model, oraz to samo od modelu do widoku
+Model to baza danych, dokładnie ta sama co w grywalnej części, na podstawie otrzymanych od kontrolera SQL-i wykonuje zadane czynności
+
+
+[gdzieś ogólnie tą bazę danych z draw.io przydałoby się wrzucić, więc być może tutaj, z tekstem "Wstępny projekt bazy danych"]
+
+
+Opis interfejsów:
+Najważniejszym interfejsem jest ten łączący Widok z Kontrolerem w części grywalnej. Połączenie między tymi komponentami będzie realizowane przez socket-y. Kontroler będzie miał otwarty socket, który będzie akceptował połączenia z socketami z widoków. Dzięki połączeniu socketów możliwe będzie wysyałnie komunikatów tekstowym bez problemów w obie strony. Widok będzie wysyłał tekstowe komendy, który kontroler będzie sprawdzał w celu poprawności, a następnie odsyłał tekst będący informacją o błędzie w razie nie poprawnej komendy, lub wyśle tekstowo nową informację np. co się stało po wykonaniu ostatniej komendy. Połączenie socket-owe wydaje się być dobrym wyborem, ponieważ pozwala na komunikację klienta z serwrem, ale także na wysyłanie nowych informacji do klienta, bez wcześniejszego zapytania z jego strony.
+
+Drugi interfejs łączy Widok z Kontrolerem w edytorze. Ze względu na to że wszystkie informacje pochodzące z kontrolera będą odpowiedzią na jakieś zapytanie z widoku (w przeciwieństwie do wcześniejszego interfejsu, nie może być sytuacji że widok otrzyma informacje ot tak), w tym miejscu wykorzystana będzie komunikacja AJAX. Widok będzie się komunikował z Kontrolerem za pomocą poleceń tekstowych oraz wykorzystując format JSON do przesyłania obiektów. Za każdym razem gdy Widok wyśle zapytanie AJAX do kontrolera, otrzyma od niego informacje zwrotną w postaci tekstu (ewentualnie pustego łancucha).
+
+Połączenie kontrolera z modelem realizowane będzie z wykorzystaniem wbudowanych funkcji PHP, służących do łączenia się z bazą danych
+
+
+Lista wykorzystanych technologii (stos technologiczny):
+...
