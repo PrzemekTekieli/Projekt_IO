@@ -73,4 +73,38 @@ Połączenie kontrolera z modelem realizowane będzie z wykorzystaniem wbudowany
 
 
 Lista wykorzystanych technologii (stos technologiczny):
-...
+- HTML5 - został wybrany ponieważ świetnie nadaje się do tworzenia stron internetowych i ogólnego front-end-u. Będzie on podstawą Widoku czyli strony Klienckiej, zostanie wykorzystany w miejscach widocznych dla użytkownika, czyli na stronie z "terminalem", oraz w edytorze.
+
+- CSS3 - nieodłączna część html-a, pozwala ostylować elementy html-a, i do tego też posłuży. Wykorzystany tak jak html w miejscach widocznych dla użytkownika, czyli na stronie z "terminalem", oraz w edytorze.
+
+- Javascript - razem z html-em i css-em zostanie użyty w front-end-zie. Główną rolą będzie obsługiwanie akcji użytkownika, to javascript pozwoli przy pomocy socket-u połączyć się z Kontrolerem, a także z jego pomocą będzie można wysyłać AJAX-y w edytorze. Na tym etapie nie przewidujemy użycia dodatkowych bibliotek lub framework-ów javascript-u, głównie z powodu nieznajomości takich, które mogłyby nam pomóc
+
+- PHP - będzie odpowiedzialny za cały back-end, pośredniczy w wymianie informacji między użytkownikiem i bazą danych przy wykorzystaniu socket-u pozwoli na komunikację z użytkownikiem, a korzystanie z wbudowanych funkcji pozwoli na komunikację z bazą danych
+
+Powyższe technologie zostaną wykorzystane przede wszystkim dlatego że wszyscy uczyliśmy się ich na studiach na 3 semestrze i wydają się wystarczyć do realizacji projektu
+
+- PostgreSQL - popularny system do zarządzania bazą danych, akurat on zostanie wykorzystany, ponieważ wszyscy uczymy się go w tym semestrze
+
+- Do komunikacji klient-serwer wykorzystamy technikę AJAX, pozwala ona na asynchroniczną wymianę informacji z serwerem bez przeładowywania całej strony. Technika ta zostanie wykorzystana przez edytor do komunikacji z serwerem, ponieważ wydaje się wystarczająca do przesyłania tekstów na serwer, oraz odbierania wiadomości zwrotnej z serwera (za sprawą formatu danych JSON, będziemy mogli wysyłać całe obiekty w formie tekstowej)
+
+- Do komunikacji klient-serwer, serwer-klient wykorzystane zostaną sockety, które pozwalają na dwukierunkową wymianę informacji (tekstów), będzie to niezbędne przy grywalnej części, gdzie klient musi mieć możliwość wysyłania komend na serwer, ale jednocześnie musi mieć możliwość pobierania informacji od serwera, bez wysyłania wcześniejszego polecenia, ze znanych nam technik, można by również zastosować AJAX-y i wykorzystywać long-polling, ale ze względu na to że serwer może wysyłać często informacje do różnych klientów, lepiej mieć z nimi stałe połączenie, niż każdorazowo AJAX-owo tworzyć nowy poll
+
+
+Projekt testów:
+Jednostkowe i integracyjne:
+Javascript - JUnit, Jest
+PHP - PHPUnit, Phake
+
+Systemowe i akceptacyjne:
+Javascript - TestCafe
+PHP - Behat
+
+
+Lista narzędzi używanych przy realizacji projektu:
+Cały projekt powstanie na Githubie z wykorzystaniem następujących narzędzi dostarczanych przez github-a:
+
+Repozytorium - ułatwi pracę nad jednym projektem wielu osobom jednocześnie
+
+Issue tracking & projekt managment tools - znacznie ułatwi zarządzanie kwestiami projektowymi, pozwali łatwo tworzyć nowe zgłoszenia błędów, i raportować statusy do poszczególnych zadań
+
+Code review - pozwala śledzić wszelkie zmiany w kodzie, co znacznie ułatwia pracę oraz ewentualne przywrócenei działającej wersji w przypadku dużych błędów
