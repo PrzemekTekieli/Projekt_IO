@@ -1,1 +1,2 @@
-
+Przykład połączenia klienta (javascript) z serwerem (php) przez socket:
+https://stackoverflow.com/questions/6826219/how-can-javascript-client-connect-to-php-socket-server
