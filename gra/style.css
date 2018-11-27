@@ -1,0 +1,14 @@
+div#div1 {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+textarea {
+    width: 100%;
+    resize: none;
+}
+
+textarea#t1 {
+    flex: 1 1 auto;
+}
