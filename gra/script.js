@@ -9,7 +9,3 @@ function handle(e) {
         return false;
     }
 }
-
-function load() {
-    
-}
