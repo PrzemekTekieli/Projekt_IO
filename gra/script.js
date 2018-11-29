@@ -16,8 +16,19 @@ function handle(e) {
 
 function load() {
     document.getElementById('t1').value='';
+     
+}
+
+function log() {
     socket = new WebSocket('ws://localhost:8080');
+    socket.addEventListener('open', function (event) { // trzeba poczekac az polaczenie bedzie otwarte
+        socket.send('log ' + document.getElementById('login').value + " " + document.getElementById('haslo').value);
+    });
     socket.addEventListener('message', function(event) {
-        document.getElementById('t1').value += event.data + '\n';
-    }); 
+        if(event.data == "true") {
+            document.getElementById('body').innerHTML = '<div id="div1"><textarea readonly id="t1"></textarea><textarea rows="1" id="t2" placeholder="Tutaj wpisz polecenie..." onkeypress="handle(event);"></textarea></div>';
+        }
+        else
+            document.getElementById('body').innerHTML = '<div>Login: <input type="text" id="login"><br>Hasło: <input type="password" id="haslo"><input type="button" value="Zaloguj" onclick="log()"><a href="register.html">Zarejestruj się</a></div>Nieprawidłowe nazwa lub/i hasło';
+    });
 }
