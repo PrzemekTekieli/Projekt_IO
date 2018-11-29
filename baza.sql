@@ -50,7 +50,7 @@ create table Postacie (
 create table Ekwipunek (
     id_ekwipunku    serial primary key,
     id_postaci      integer not null references Postacie,
-    pieniądze       integer
+    pieniadze       integer
 );
 
 create table NPC (
