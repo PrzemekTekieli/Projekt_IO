@@ -1,18 +1,3 @@
-drop table Gracze cascade;
-drop table Ekwipunek cascade;
-drop table Kategoria cascade;
-drop table Lokacje cascade;
-drop table Misje cascade;
-drop table NPC cascade;
-drop table Postacie cascade;
-drop table Potwory cascade;
-drop table Przedmiot cascade;
-drop table Statystyka cascade;
-drop table Wystapienia cascade;
-drop table Zawartosc cascade;
-
-begin;
-
 create table Gracze (
     login       varchar(15) not null primary key,
     haslo       varchar(15) not null
@@ -103,15 +88,15 @@ create table Misje (
 
 insert into Gracze (login, haslo) values
 ('jerry', 'kittens'),
-('bla_cack' '$tudent'),
+('bla_cack', '$tudent'),
 ('komornik', 'pienionszki'),
 ('kurnik', 'kogut'),
 ('sweetie', 'chocco');
 
 insert into Lokacje (id_lokacji, x, y, opis) values
-(1, 0, 0, 'Lokacja startowa')
-(2, 0, 1, 'Trochę obok')
-(3, 1, 0, 'W drugą stronę')
+(1, 0, 0, 'Lokacja startowa'),
+(2, 0, 1, 'Trochę obok'),
+(3, 1, 0, 'W drugą stronę'),
 (4, 1, 1, 'Na ukos');
 
 insert into Statystyka (id_statystyki, atak, obrona, hp) values
@@ -176,5 +161,3 @@ insert into Zawartosc values
 (3, 3, 1),
 (2, 2, 14),
 (1, 2, 3);
-
-commit;
