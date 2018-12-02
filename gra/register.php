@@ -21,12 +21,13 @@
         }
         else
         {
-            if(!file_exists("accounts/" . $_POST["login"]))
+            $conn = new mysqli("localhost", "root", "", "projekt");
+            if ($conn->connect_error)
+                die("Connection failed: " . $conn->connect_error);
+            if(mysqli_num_rows($conn->query("select login from Gracze where login='".$_POST["login"]."'")) == 0)
             {
-                mkdir("accounts/" . $_POST["login"]);
-                $file = fopen("accounts/".$_POST["login"]."/password", "w");
-                fwrite($file, $_POST["haslo1"]);
-                fclose($file);
+                $sql  = "INSERT INTO Gracze VALUES ('".$_POST["login"]."', '".$_POST["haslo1"]."')";
+                $conn->query($sql);
                 echo "Założono konto";
             }
             else
