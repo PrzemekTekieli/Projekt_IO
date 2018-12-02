@@ -14,8 +14,7 @@ drop table Zawartosc cascade;
 begin;
 
 create table Gracze (
-    id_gracza   serial primary key,
-    login       varchar(15) not null,
+    login       varchar(15) not null primary key,
     haslo       varchar(15) not null
 );
 
@@ -41,7 +40,7 @@ create table Kategoria (
 
 create table Postacie (
     id_postaci      serial primary key,
-    id_gracza       integer not null references Gracze,
+    login           varchar(15) not null references Gracze,
     id_lokacji      integer not null references Lokacje,
     id_statystyki   integer not null references Statystyka,
     nazwa           varchar(20)
@@ -101,99 +100,81 @@ create table Misje (
     id_nagrody              integer not null references Przedmiot
 );
 
-copy Gracze from stdin with (null '', delimiter '|');
-1|jerry|kittens
-2|bla_cack|$tudent
-3|komornik|pienionszki
-4|kurnik|kogut
-5|sweetie|chocco
-\.
 
-copy Lokacje from stdin with (null '', delimiter '|');
-1|0|0|Lokacja startowa
-2|0|1|Trochę obok
-3|1|0|W drugą stronę
-4|1|1|Na ukos
-\.
+insert into Gracze (login, haslo) values
+('jerry', 'kittens'),
+('bla_cack' '$tudent'),
+('komornik', 'pienionszki'),
+('kurnik', 'kogut'),
+('sweetie', 'chocco');
 
-copy Statystyka from stdin with (null '', delimiter '|');
-1|1|1|1
-2|2|3|10
-3|40|35|100
-4|42|5|12
-5|3|3|3
-\.
+insert into Lokacje (id_lokacji, x, y, opis) values
+(1, 0, 0, 'Lokacja startowa')
+(2, 0, 1, 'Trochę obok')
+(3, 1, 0, 'W drugą stronę')
+(4, 1, 1, 'Na ukos');
 
-copy Kategoria from stdin with (null '', delimiter '|');
-1|Naramiennik|Coś co zakładasz dla ochrony kończyn górnych.
-2|Buty|Zakładasz na stopy.
-3|Rękawice|Zakładasz na dłonie.
-4|Spodnie|Zakładasz na nogi.
-5|Hełm|Zakładasz na łeb i masz zakuty.
-\.
+insert into Statystyka (id_statystyki, atak, obrona, hp) values
+(1, 1, 1, 1),
+(2, 2, 3, 10),
+(3, 40, 35, 100),
+(4, 42, 5, 12),
+(5, 3, 3, 3);
 
-copy Postacie from stdin with (null '', delimiter '|');
-1|1|1|1|Alduin
-2|1|1|2|Bezimienny
-3|2|4|5|Geralt
-4|3|2|3|Lars
-5|2|3|2|Eldric
-\.
+insert into Kategoria (id_kategorii, nazwa, opis) values
+(1, 'Naramiennik', 'Coś co zakładasz dla ochrony kończyn górnych.'),
+(2, 'Buty', 'Zakładasz na stopy.'),
+(3, 'Rękawice', 'Zakładasz na dłonie.'),
+(4, 'Spodnie', 'Zakładasz na nogi.'),
+(5, 'Hełm', 'Zakładasz na łeb i masz zakuty.');
 
-copy Ekwipunek from stdin with (null '', delimiter '|');
-1|1|2500
-2|2|100
-3|3|42
-4|4|5
-5|5|8219
-\.
+insert into Postacie values
+(1, 'jerry', 1, 1, 'Alduin'),
+(2, 'jerry', 1, 2, 'Bezimienny'),
+(3, 'bla_cack', 4, 5, 'Geralt'),
+(4, 'komornik', 2, 3, 'Lars'),
+(5, 'bla_cack', 3, 2, 'Eldric');
 
-copy NPC from stdin with (null '', delimiter '|');
-1|1|true|John
-2|2|false|David     
-3|3|false|Mark
-4|4|false|Zenon
-5|4|false|Nastain
-\.
+insert into Ekwipunek values
+(1, 1, 2500),
+(2, 2, 100),
+(3, 3, 42),
+(4, 4, 5),
+(5, 5, 8219);
 
-copy Potwory from stdin with (null '', delimiter '|');
-1|2|Krowa|3
-2|2|Konik|4
-3|3|Smok|456
-4|1|Goryl|523
-5|4|Kuc|23
-\.
+insert into NPC values
+(1, 1, true, 'John'),
+(2, 2, false, 'David'),     
+(3, 3, false, 'Mark'),
+(4, 4, false, 'Zenon'),
+(5, 4, false, 'Nastain');
 
-copy Przedmiot from stdin with (null '', delimiter '|');
-1|3|2|Super buty mocy|234|Super mocne.
-2|1|3|Rozwalone rękawice|1|Praktycznie bezużyteczne.
-3|3|5|Garnek|2|Zawsze coś.
-4|1|3|Kolczaste rękawice|200|Drap z rozwagą!
-5|1|1|Naramienniki Pradawnego Boga|10000|Tylko dla wyznawców.
-\.
+insert into Potwory values
+(1, 2, 'Krowa', 3),
+(2, 2, 'Konik', 4),
+(3, 3, 'Smok', 456),
+(4, 1, 'Goryl', 523),
+(5, 4, 'Kuc', 23);
 
-copy Wystapienia from stdin with (null '', delimiter '|');
-2|1|25
-3|4|80
-3|2|34
-3|3|99
-4|1|10
-\.
+insert into Przedmiot values
+(1, 3, 2, 'Super buty mocy', 234, 'Super mocne.'),
+(2, 1, 3, 'Rozwalone rękawice', 1, 'Praktycznie bezużyteczne.'),
+(3, 3, 5, 'Garnek', 2, 'Zawsze coś.'),
+(4, 1, 3, 'Kolczaste rękawice', 200, 'Drap z rozwagą!'),
+(5, 1, 1, 'Naramienniki Pradawnego Boga', 10000, 'Tylko dla wyznawców.');
 
-copy Zawartosc from stdin with (null '', delimiter '|');
-1|1|23
-4|3|43
-3|3|1
-2|2|14
-1|2|3
-\.
+insert into Wystapienia values
+(2, 1, 25),
+(3, 4, 80),
+(3, 2, 34),
+(3, 3, 99),
+(4, 1, 10);
 
-copy Misje from stdin with (null '', delimiter '|');
-1|Musisz iść do Baśniowego Boru i wrócić po nagrodę.|4|2|0|200|2
-2|Zabij jednonogiego pirata!|3|2|1|300|3
-3|Przynieś mi 30 marchewek.|3|3|0|10|4
-4|Odnajdź Kraniec Świata i wróć po nagrodę.|3|4|0|1000|4
-5|Zabij Złotego Skarabeusza!|2|5|1|30023|3
-\.
+insert into Zawartosc values
+(1, 1, 23),
+(4, 3, 43),
+(3, 3, 1),
+(2, 2, 14),
+(1, 2, 3);
 
 commit;
