@@ -28,6 +28,17 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
             $Server->wsSend($clientID, "true");
             printf("true\n");
             $player = $pieces[1];
+			$sql = "select nazwa from Postacie where login = '$pieces[1]'";
+			$result = $conn->query($sql);
+			if($result->num_rows > 0) {
+				$Server->wsSend($clientID, "Twoje postacie to:");
+				while($row = $result->fetch_assoc()) {
+					$Server->wsSend($clientID, "".$row['nazwa']."");
+				}
+			}
+			else{
+				$Server->wsSend($clientID, "Nie posiadasz żadnych postaci.");
+			}
         } else {
             $Server->wsSend($clientID, "false");
             printf("false\n");
@@ -93,12 +104,11 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$y = $y - 1;
 			}
 			else{
-				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
-				$result = $conn->query($sql)->fetch_assoc();
-				$id_lok = $result['id_lokacji'];
-				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
-				$conn->query($sql);
-				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				$Server->wsSend($clientID, "Jesteś w ".$opis."");
+				if($id_potw != 0){
+					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+				}
 			}
         }
         else
@@ -114,12 +124,11 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$x = $x - 1;
 			}
 			else{
-				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
-				$result = $conn->query($sql)->fetch_assoc();
-				$id_lok = $result['id_lokacji'];
-				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
-				$conn->query($sql);
-				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				$Server->wsSend($clientID, "Jesteś w ".$opis."");
+				if($id_potw != 0){
+					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+				}
 			}
         }
         else
@@ -135,12 +144,11 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$y = $y + 1;
 			}
 			else{
-				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
-				$result = $conn->query($sql)->fetch_assoc();
-				$id_lok = $result['id_lokacji'];
-				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
-				$conn->query($sql);
-				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				$Server->wsSend($clientID, "Jesteś w ".$opis."");
+				if($id_potw != 0){
+					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+				}
 			}
         }
         else
@@ -156,18 +164,45 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$x = $x + 1;
 			}
 			else{
-				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
-				$result = $conn->query($sql)->fetch_assoc();
-				$id_lok = $result['id_lokacji'];
-				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
-				$conn->query($sql);
-				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				$Server->wsSend($clientID, "Jesteś w ".$opis."");
+				if($id_potw != 0){
+					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+				}
 			}
         }
         else
             $Server->wsSend($clientID, "Najpierw wybierz postać poleceniem: postac ...");
     }
 }
+
+function wejscieDoLokacji($conn, $x, $y, $postac) {
+	$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
+	$result = $conn->query($sql)->fetch_assoc();
+	$id_lok = $result['id_lokacji'];
+	$opis = $result['opis'];
+	$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
+	$conn->query($sql);
+	$sql = "select id_potwora, procent_odrodzenia from Wystapienia where id_lokacji = '$id_lok'";
+	$result = $conn->query($sql);
+	$id_potw = 0;
+	$nazwa = "";
+	if($result->num_rows > 0) {
+		while($row = $result->fetch_assoc()) {
+			if(rand(0,99) < $row['procent_odrodzenia']){
+				$id_potw = $row['id_potwora'];
+				break;
+			}
+		}
+	}
+	if($id_potw != 0){
+		$sql = "select nazwa from Potwory where id_potwora = '$id_potw'";
+		$result = $conn->query($sql)->fetch_assoc();
+		$nazwa = $result['nazwa'];
+	}
+	return array($opis, $id_potw, $nazwa);
+}
+
 // Tworzymy klasę, podłączamy naszą funckję i uruchamiamy serwer 
 $Server = new PHPWebSocket();
 $Server->bind('message', 'wsOnMessage');
