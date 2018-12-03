@@ -14,11 +14,13 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
     global $logged;
     global $player;
     global $postac;
+	global $x;
+	global $y;
     // wypisujemy w konsoli to, co przyszło
     printf("Client %s sent: %s\n",$clientID,$message);
     
     $pieces = explode(" ", $message);
-    $sql2 = "SELECT haslo FROM Gracze where login = '".$pieces[1]."'";
+    $sql2 = "SELECT haslo FROM Gracze where login = '$pieces[1]'";
     $result = $conn->query($sql2);
     if($pieces[0] == "log" && $pieces[1] != "" && $result->num_rows == 1) { // zaloguj
         $row = $result->fetch_assoc();
@@ -53,6 +55,8 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
                 }
             }
         if($jest && $gracz == $player) {
+			$x = 0;
+			$y = 0;
             $postac = $pieces[1];
             $Server->wsSend($clientID, "Wybrałeś postać ".$pieces[1]);
         }
@@ -62,6 +66,8 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
             $postac = $pieces[1];
             
             $sql4 = "insert into Lokacje (x, y) values (0, 0)";
+			$x = 0;
+			$y = 0;
             if($conn->query($sql4) == false)
                 echo "Nie udało się1";
             $sql4 = "insert into Statystyka (atak, obrona, hp) values (100, 100, 100)";
@@ -92,44 +98,84 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
     }
     else if($pieces[0] == "n") {
         if($postac != "") {
-            $sql = "update Lokacje join Postacie using(id_lokacji) set y = y+1 where nazwa = '$postac'";
-            $conn->query($sql);
-            $sql = "select x,y from Lokacje join Postacie using(id_lokacji) where nazwa = '$postac'";
-            $result = $conn->query($sql)->fetch_assoc();
-            $Server->wsSend($clientID, "Jesteś w (".$result['x'].", ".$result['y'].")");
+			$y = $y + 1;
+			$sql = "select * from Lokacje where x = '$x' and y = '$y'";
+			$result = $conn->query($sql)->fetch_assoc();
+			if(!$result){
+				$Server->wsSend($clientID, "Nie możesz tam pójść");
+				$y = $y - 1;
+			}
+			else{
+				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
+				$result = $conn->query($sql)->fetch_assoc();
+				$id_lok = $result['id_lokacji'];
+				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
+				$conn->query($sql);
+				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+			}
         }
         else
             $Server->wsSend($clientID, "Najpierw wybierz postać poleceniem: postac ...");
     }
     else if($pieces[0] == "e") {
         if($postac != "") {
-            $sql = "update Lokacje join Postacie using(id_lokacji) set x = x+1 where nazwa = '$postac'";
-            $conn->query($sql);
-            $sql = "select x,y from Lokacje join Postacie using(id_lokacji) where nazwa = '$postac'";
-            $result = $conn->query($sql)->fetch_assoc();
-            $Server->wsSend($clientID, "Jesteś w (".$result['x'].", ".$result['y'].")");
+			$x = $x + 1;
+			$sql = "select * from Lokacje where x = '$x' and y = '$y'";
+			$result = $conn->query($sql)->fetch_assoc();
+			if(!$result){
+				$Server->wsSend($clientID, "Nie możesz tam pójść");
+				$x = $x - 1;
+			}
+			else{
+				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
+				$result = $conn->query($sql)->fetch_assoc();
+				$id_lok = $result['id_lokacji'];
+				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
+				$conn->query($sql);
+				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+			}
         }
         else
             $Server->wsSend($clientID, "Najpierw wybierz postać poleceniem: postac ...");
     }
     else if($pieces[0] == "s") {
         if($postac != "") {
-            $sql = "update Lokacje join Postacie using(id_lokacji) set y = y-1 where nazwa = '$postac'";
-            $conn->query($sql);
-            $sql = "select x,y from Lokacje join Postacie using(id_lokacji) where nazwa = '$postac'";
-            $result = $conn->query($sql)->fetch_assoc();
-            $Server->wsSend($clientID, "Jesteś w (".$result['x'].", ".$result['y'].")");
+			$y = $y - 1;
+			$sql = "select * from Lokacje where x = '$x' and y = '$y'";
+			$result = $conn->query($sql)->fetch_assoc();
+			if(!$result){
+				$Server->wsSend($clientID, "Nie możesz tam pójść");
+				$y = $y + 1;
+			}
+			else{
+				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
+				$result = $conn->query($sql)->fetch_assoc();
+				$id_lok = $result['id_lokacji'];
+				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
+				$conn->query($sql);
+				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+			}
         }
         else
             $Server->wsSend($clientID, "Najpierw wybierz postać poleceniem: postac ...");
     }
     else if($pieces[0] == "w") {
         if($postac != "") {
-            $sql = "update Lokacje join Postacie using(id_lokacji) set x = x-1 where nazwa = '$postac'";
-            $conn->query($sql);
-            $sql = "select x,y from Lokacje join Postacie using(id_lokacji) where nazwa = '$postac'";
-            $result = $conn->query($sql)->fetch_assoc();
-            $Server->wsSend($clientID, "Jesteś w (".$result['x'].", ".$result['y'].")");
+			$x = $x - 1;
+			$sql = "select * from Lokacje where x = '$x' and y = '$y'";
+			$result = $conn->query($sql)->fetch_assoc();
+			if(!$result){
+				$Server->wsSend($clientID, "Nie możesz tam pójść");
+				$x = $x + 1;
+			}
+			else{
+				$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
+				$result = $conn->query($sql)->fetch_assoc();
+				$id_lok = $result['id_lokacji'];
+				$sql = "update Postacie set id_lokacji = '$id_lok' where nazwa = '$postac'";
+				$conn->query($sql);
+				$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
+			}
         }
         else
             $Server->wsSend($clientID, "Najpierw wybierz postać poleceniem: postac ...");
