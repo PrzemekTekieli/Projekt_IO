@@ -70,36 +70,17 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
             $Server->wsSend($clientID, "Podana nazwa już istnieje.");
         else {
             $postac = $pieces[1];
-            
-            $sql4 = "insert into Lokacje (x, y) values (0, 0)";
 			$x = 0;
 			$y = 0;
-            if($conn->query($sql4) == false)
-                echo "Nie udało się1";
-            $sql4 = "insert into Statystyka (atak, obrona, hp) values (100, 100, 100)";
-            if($conn->query($sql4) == false)
-                echo "Nie udało się2";
-            
-            $sql4 = "select id_lokacji from Lokacje order by id_lokacji desc";
-            $result = $conn->query($sql4);
-            $id_lokacji = 1;
-            if($result != false) {
-                $result = $result->fetch_assoc();
-                $id_lokacji = $result["id_lokacji"];
-            }
-            
-            $postac = $pieces[1];
-            $sql4 = "select id_statystyki from Statystyka order by id_statystyki desc";
-            $result = $conn->query($sql4);
-            $id_statystyki = 1;
-            if($result != false) {
-                $result = $result->fetch_assoc();
-                $id_statystyki = $result["id_statystyki"];
-            }
-            $sql4 = "insert into Postacie (login, id_lokacji, id_statystyki, nazwa) values ('$player', $id_lokacji, $id_statystyki, '$postac')";
-            if($conn->query($sql4) == false)
-                echo "Nie udało się3";
+            $sql = "insert into Postacie (login, id_lokacji, id_statystyki, nazwa) values ('$player', '1', '1', '$postac')";
+			$sql = "select id_postaci from Postacie where nazwa = '$postac'";
+			$result = $conn->query($sql)->fetch_assoc();
+			$id_pos = $result['id_postaci'];
+			$sql = "insert into Ekwipunek (id_postaci, pieniadze) values ('$id_pos', '10')";
+			$sql = "select opis from Lokacje where id_lokacji = '1'";
+			$result = $conn->query($sql)->fetch_assoc();
             $Server->wsSend($clientID, "Stworzyłeś i wybrałeś postać $postac");
+			$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
         }
     }
     else if($pieces[0] == "n") {
@@ -190,5 +171,5 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 // Tworzymy klasę, podłączamy naszą funckję i uruchamiamy serwer 
 $Server = new PHPWebSocket();
 $Server->bind('message', 'wsOnMessage');
-$Server->wsStartServer('localhost', 8090);
+$Server->wsStartServer('localhost', 8080);
 ?>
