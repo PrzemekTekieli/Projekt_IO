@@ -55,10 +55,16 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
                 }
             }
         if($jest && $gracz == $player) {
-			$x = 0;
-			$y = 0;
             $postac = $pieces[1];
+			$sql = "select id_lokacji from Postacie where nazwa = '$postac'";
+			$result = $conn->query($sql)->fetch_assoc();
+			$id_lok = $result['id_lokacji'];
+			$sql = "select x,y,opis from Lokacje where id_lokacji = '$id_lok'";
+			$result = $conn->query($sql)->fetch_assoc();
+			$x = $result['x'];
+			$y = $result['y'];
             $Server->wsSend($clientID, "Wybrałeś postać ".$pieces[1]);
+			$Server->wsSend($clientID, "Jesteś w ".$result['opis']."");
         }
         else if($jest)
             $Server->wsSend($clientID, "Podana nazwa już istnieje.");
@@ -184,5 +190,5 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 // Tworzymy klasę, podłączamy naszą funckję i uruchamiamy serwer 
 $Server = new PHPWebSocket();
 $Server->bind('message', 'wsOnMessage');
-$Server->wsStartServer('localhost', 8080);
+$Server->wsStartServer('localhost', 8090);
 ?>
