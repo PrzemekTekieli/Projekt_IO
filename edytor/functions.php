@@ -1,61 +1,61 @@
 <?php
+require('handler.php');
 
-function player($val){
-	//gdy $val jest ustawione, to znaczy że chcemy zapisać to w bazie danych
-	//jeśli nie jest, to znaczy że chcemy odczytać
-	$db = new my_connection();
-	if(is_null($val)){
-		//get
-		$result = $db->query("SELECT * FROM gracze ORDER BY id_gracza");
+//nazwa funkcji musi być zgodna z command w pliku index.html
+class player extends handler{
+	private $tab_name = 'gracze';
+	
+	public function select(){
+		$result = $this->db->query("SELECT * FROM $this->tab_name ORDER BY id_gracza");
 		//$result = $db->fetchAll($result);
-		$result = $db->fetchAssoc($result);
+		$result = $this->db->fetchAssoc($result);
 
 		echo(json_encode($result));
 	}
-	else{
-		//set
+	
+	public function insert($val){
 		$val = json_decode($val);
 		$arr =  (array) $val;
 		
-		$query = "UPDATE gracze SET ";
+		$query = "";
 		foreach($arr as $key => $value){
-			$query .= "$key = '$value',";
+			$query .= "'$value',";
 		}
-		$query = substr($query, 0, -1) . " WHERE id_gracza = 1";
-		$db->query($query);
+		$query = substr($query, 0, -1);
+				
+		$this->_insert($this->tab_name,$query);
+		
+		echo(json_encode("Zapisano zmiany"));
+	}
+	
+	public function update($val){
+		$val = json_decode($val);
+		$arr =  (array) $val;
+		
+		$where = '';
+		$query = '';
+		foreach($arr as $key => $value){
+			if($where == ''){
+				$where = "$key = '$value'";
+			}
+			else{
+				$query .= "$key = '$value',";
+			}
+		}
+		$query = substr($query, 0, -1);
+				
+		$this->_update($this->tab_name,$query,$where);
+		
+		echo(json_encode("Zapisano zmiany"));
+	}
+	
+	public function delete($where){
+		$this->_delete($this->tab_name,$where);
 		
 		echo(json_encode("Zapisano zmiany"));
 	}
 }
 
-function character($val){
-	$db = new my_connection();
-	if(is_null($val)){
-		//get
-		$result = $db->query("SELECT * FROM postacie");
-		$result = $db->fetchAssoc($result);
-
-		echo(json_encode($result));
-	}
-	else{
-		//set
-		echo("set");
-	}
-}
-
-function location($val){
-	$db = new my_connection();
-	if(is_null($val)){
-		//get
-		$result = $db->query("SELECT * FROM lokacje");
-		$result = $db->fetchAssoc($result);
-
-		echo(json_encode($result));
-	}
-	else{
-		//set
-		echo("set");
-	}
-}
+//gdy to będzie nowa tabela gracze, czyli login to klucz główny, to będzie trzeba to jakoś uwzględnić
 
 ?>

@@ -1,5 +1,5 @@
 <?php
-
+//klasa tworzy połączenie z bazą danych, i udostępnia łatwy dostęp do jej operacji
 class my_connection{
 	private $conn;
 	

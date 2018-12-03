@@ -41,15 +41,16 @@ function $getAtr(el, attr){
 	return el.getAttribute("data-" + attr);
 }
 
-function $ajax(url, command, onReturn, variable, show){
+function $ajax(url, command, onReturn){
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			onReturn(this,variable,show);
+			onReturn(this);
 		}
 	};
-	xhttp.open("GET", url + command, true);
-	xhttp.send();
+	xhttp.open("POST", url, true);
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.send(command);
 	return;
 }
 

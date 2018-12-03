@@ -58,40 +58,47 @@
 			//zmienne globalne
 			
 			//tablica przycisków tworzonych przy starcie strony, name - wyświetlana nazwa, command - wysyłana komenda do serwera po kliknięciu
-			var buttons = [
+			var tables = [
 				{
-					name:"Gracze",
+					name:"gracze",
 					command:"player",
 					show:["login"]
 				},
 				{
-					name:"Postacie",
+					name:"postacie",
 					command:"character",
 					show:["nazwa"]
 				},
 				{
-					name:"Potwory",
+					name:"potwory",
 					command:"enemy",
 					show:["nazwa"]
 				},
 				{
-					name:"Ekwipunek",
+					name:"ekwipunek",
 					command:"inventory",
-					show:["nazwa"]//przerobić żeby postac miała nazwę jako klucz główny?
+					show:["nazwa"]
 				},
 				{
-					name:"Lokacje",
+					name:"lokacje",
 					command:"location",
 					show:["x","y"]
 				},
 				{
-					name:"Misje",
+					name:"misje",
 					command:"mission",
 					show:["nazwa"]//dodać do misji nazwę oprócz opisu
 				}
 			];
 			
+			//obiekt przechowujący odpowiednie respons-y (obiekty z tabel)
 			var variables;
+			//obecnie wybrana kategoria
+			var current_category;
+			//obecnie edytowany element;
+			var current_element;
+			//numer pod którym znajdują się informacje o obecnej kategorii
+			var current_table;
 			
 			//funkcja wywoływana po załadowaniu strony
 			function start(){
@@ -101,41 +108,38 @@
 			
 			function setVariables(){
 				variables = new Object();
-				for(var i = 0; i < buttons.length; i++){
-					variables[buttons[i].name] = '';
+				for(var i = 0; i < tables.length; i++){
+					variables[tables[i].name] = '';
 				}
-			}
+			}			
 			
-			//będą jakby 3 poziomy edytora:
-			//1. wybór głównej kategorii, np. przeciwnicy
-			//2. wybór konkretnego przeciwnika
-			//3. formularz edycji wybranego przeciwnika
-			
-			
-			//tworzy przyciski na podstawie tablicy 'buttons'
+			//tworzy przyciski na podstawie tablicy 'tables'
 			function createButtons(){
-				for(var i = 0; i < buttons.length; i++){
-					var btn = $create('','button',buttons[i].name);
-					$setAtr(btn,'cmd',buttons[i].command);
+				for(var i = 0; i < tables.length; i++){
+					var btn = $create('','button',tables[i].name);
+					$setAtr(btn,'cmd',tables[i].command);
+					$setAtr(btn,'name',tables[i].name);
 					$setAtr(btn,'id',i);
 					$get('#buttons-container').appendChild(btn);
 					
 					//po kliknięciu przycisku wysyłamy AJAX żeby pobrać odpowiednie rzeczy na podstawie wysłanej komendy
-					btn.addEventListener('click',function(index){
+					btn.addEventListener('click',function(){
 						var actives = $get('#step1 .active');
 						for(var i = 0; i < actives.length; i++){
 							$removeClass(actives[i],'active');
 						}
-						var index = $getAtr(this,'id');
 						$addClass(this,'active');
-						$get('#cur-content-name').innerHTML = '(' + this.innerHTML + ')';
+						current_category = $getAtr(this,'name');
+						current_table = $getAtr(this,'id');
+						
+						$get('#cur-content-name').innerHTML = '(' + $getAtr(this,'name') + ')';
 						var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
-						$ajax(url,'?action=' + $getAtr(this,'cmd'),createContent, buttons[index].name, buttons[index].show);
+						$ajax(url,'class=' + $getAtr(this,'cmd') + '&action=select',createContent);
 					});
 				}
 			}
 			
-			var createContent = function(server, obj_name, show_name){
+			var createContent = function(server){
 				//pobraliśmy wszystko z danej kategorii, więc wyświetlamy to w formie przycisków, aby móc edytować konkrety rekord
 				var response = JSON.parse(server.response);			
 
@@ -150,8 +154,9 @@
 				$get("#message").innerHTML = '#';
 				
 				//przepisujemy zawartość odpowiedzi do zmiennej
-				variables[obj_name] = response;
+				variables[current_category] = response;
 				
+				var show_name = tables[current_table].show;
 				for(var i = 0; i < response.length; i++){
 					var str = '';
 					for(var j = 0; j < show_name.length; j++){
@@ -167,12 +172,22 @@
 						for(var i = 0; i < actives.length; i++){
 							$removeClass(actives[i],'active');
 						}
-						var index = $getAtr(this,'id');
+						current_element = $getAtr(this,'id');
 						$addClass(this,'active');
 						$get('#cur-element-name').innerHTML = '(' + this.innerHTML + ')';
-						editData(variables[obj_name][index]);
+						editData();
 					});
 				}
+				
+				/*
+				var btn = $create('', 'button', 'Dodaj nowy');
+				$get("#contents-container").appendChild(btn);
+				
+				btn.addEventListener('click',function(){
+					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
+					$ajax(url,'class=' + tables[current_table].command + '&action=insert&value=' + JSON.stringify(tables[current_table].show[0]),saveData, '', '');
+				});
+				*/
 				
 				/*
 				for(var i = 0; i < response.length; i++){
@@ -182,7 +197,8 @@
 				*/
 			}
 			
-			function editData(data){
+			function editData(){
+				var data = variables[current_category][current_element];
 				var form_container = $get("#element-container");
 				form_container.innerHTML = '';
 				for (var key in data){
@@ -205,7 +221,32 @@
 						data[key] = val;
 					}
 					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
-					$ajax(url,'?action=' + 'player' + '&value=' + JSON.stringify(data),saveData, '', '');//todo zmiana action
+					$ajax(url,'class=' + tables[current_table].command + '&action=update&value=' + JSON.stringify(data),saveData, '', '');
+				});
+				
+				var btn = $create('', 'button', 'Usuń');
+				form_container.appendChild(btn);
+				btn.addEventListener('click',function(){
+					var key = $get("#element-container label")[0].innerHTML;
+					var val = $get("#element-container input")[0].value;
+					delete data;
+					var where = key + ' = ' + val;
+					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
+					$ajax(url,'class=' + tables[current_table].command + '&action=delete&where=' + where,saveData, '', '');
+				});
+				
+				
+				//tymczasowo do testów
+				var btn = $create('', 'button', 'Dodaj nowy');
+				form_container.appendChild(btn);
+				btn.addEventListener('click',function(){
+					for (var i = 0; i < Object.keys(data).length; i++){
+						var key = $get("#element-container label")[i].innerHTML;
+						var val = $get("#element-container input")[i].value;
+						data[key] = val;
+					}
+					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
+					$ajax(url,'class=' + tables[current_table].command + '&action=insert&value=' + JSON.stringify(data),saveData, '', '');
 				});
 			}
 			
