@@ -42,6 +42,9 @@
 			.error{
 				color:#ff0000;
 			}
+			.success{
+				color:green;
+			}
 			.active{
 				background:blue;
 			}
@@ -183,14 +186,32 @@
 				var form_container = $get("#element-container");
 				form_container.innerHTML = '';
 				for (var key in data){
-					var row = $create('','row');
-					var label = $create('','f-left m-1',key,'label');
-					var input = $create('','f-right m-1','','input');
-					input.value = data[key];
-					row.appendChild(label);
-					row.appendChild(input);
-					form_container.appendChild(row);
+					if(data.hasOwnProperty(key)){
+						var row = $create('','row');
+						var label = $create('','f-left m-1',key,'label');
+						var input = $create('','f-right m-1','','input');
+						input.value = data[key];
+						row.appendChild(label);
+						row.appendChild(input);
+						form_container.appendChild(row);
+					}
 				}
+				var btn = $create('', 'button', 'Zapisz');
+				form_container.appendChild(btn);
+				btn.addEventListener('click',function(){
+					for (var i = 0; i < Object.keys(data).length; i++){
+						var key = $get("#element-container label")[i].innerHTML;
+						var val = $get("#element-container input")[i].value;
+						data[key] = val;
+					}
+					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
+					$ajax(url,'?action=' + 'player' + '&value=' + JSON.stringify(data),saveData, '', '');//todo zmiana action
+				});
+			}
+			
+			var saveData = function(server){
+				var response = JSON.parse(server.response);	
+				$get("#message").innerHTML = '<div class="success"><h4>'+ response +'</h4></div>';
 			}
 		</script>
 	</head>

@@ -23,7 +23,7 @@ if(function_exists($action)){
 	echo($action($value));
 }
 else{
-	echo(json_encode('Nęieznana komenda: \'' . $action .'\''));
+	echo(json_encode('Nieznana komenda: \'' . $action .'\''));
 }
 
 

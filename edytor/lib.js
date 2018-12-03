@@ -24,9 +24,12 @@ function $get(selector){
 			ancestor = ancestor.getElementById(selector.slice(1));
 		else if(selector[0] == '.')
 			ancestor = ancestor.getElementsByClassName(selector.slice(1));
+		else{
+			ancestor = ancestor.getElementsByTagName(selector);
+		}
 	}
 	return ancestor;
-	//jakby chcieć używać innych selektorów to trzeba tu dorzucić, obecnie nie obsługuje czegoś w klasie np. ('.class1 .class2')
+	//jakby chcieć używać innych selektorów to trzeba tu dorzucić, obecnie nie obsługuje czegoś w klasie np. ('.class1 .class2'), ani w tag-u
 }
 
 function $setAtr(el,attr, value){
