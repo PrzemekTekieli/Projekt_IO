@@ -15,9 +15,9 @@
         if(!preg_match("/^[a-zA-Z0-9]*$/",$name) || $_POST["haslo1"] != $_POST["haslo2"])
         {
             if(!preg_match("/^[a-zA-Z0-9]*$/",$name))
-                echo "Login może składać się tylko z liter i cyfr";
+                echo 'Login może składać się tylko z liter i cyfr<br><a href="register_form.html">Powróć</a>';
             if($_POST["haslo1"] != $_POST["haslo2"])
-                echo "Podane hasła nie są takie same";
+                echo 'Podane hasła nie są takie same<br><a href="register_form.html">Powróć</a>';
         }
         else
         {
@@ -28,10 +28,10 @@
             {
                 $sql  = "INSERT INTO Gracze VALUES ('".$_POST["login"]."', '".$_POST["haslo1"]."')";
                 $conn->query($sql);
-                echo "Założono konto";
+                echo 'Założono konto<br><a href="index.html">Zaloguj</a>';
             }
             else
-                echo "Konto już istnieje";
+                echo 'Konto już istnieje<br><a href="register_form.html">Powróć</a>';
         }
         
     ?>
