@@ -12,7 +12,7 @@ abstract class handler{
 	
 	//wstawia nowy rekord do tabeli
 	protected function _insert($table, $values){
-		$this->db->query("INSERT INTO $table VALUES($values)");
+		$this->db->query("INSERT INTO $table VALUES(default,$values)");
 	}
 	
 	//aktualizuje rekord

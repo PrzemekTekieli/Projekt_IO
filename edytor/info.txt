@@ -1,1 +1,8 @@
+Do działania wymagany jest zainstalowany PostgreSQL oraz lokalny serwer (np. Apache w Xampp-ie)
+Należy zmienić w connection.php nazwę host-a, bazy oraz użytkownika (dodać ewentualne hasło jeśli wymagane do połączeń)
+W index.html zmienić wartość zmiennej globalnej url, na odpowiadającą lokalnej konfiguracji
 
+Opis plików (na chwilę obecną, ale opis ten może nie być aktualny w przyszłości):
+index.html - główny plik odpowiadający za interfejs graficzny widoczny przez użytkownika
+style.css - w przyszłości lokalne style z index.html zostaną tu przeniesione
+cos.js

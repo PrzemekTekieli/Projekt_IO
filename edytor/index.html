@@ -51,13 +51,19 @@
 			.row{
 				overflow:hidden;
 			}
+			.new_btn{
+				background:orange;
+			}
+			.new_btn.active{
+				background:violet;
+			}
 		</style>
 		<script src="lib.js"></script>
 		<script>
 		
 			//zmienne globalne
 			
-			//tablica przycisków tworzonych przy starcie strony, name - wyświetlana nazwa, command - wysyłana komenda do serwera po kliknięciu
+			//tablica przycisków tworzonych przy starcie strony, name - wyświetlana nazwa kategorii, command - wysyłana komenda do serwera po kliknięciu, show - nazwa pola/pól które mamy wyświetlić po pobraniu
 			var tables = [
 				{
 					name:"gracze",
@@ -90,6 +96,9 @@
 					show:["nazwa"]//dodać do misji nazwę oprócz opisu
 				}
 			];
+			
+			//lokalizacja pliku cmd.php
+			var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
 			
 			//obiekt przechowujący odpowiednie respons-y (obiekty z tabel)
 			var variables;
@@ -129,24 +138,25 @@
 							$removeClass(actives[i],'active');
 						}
 						$addClass(this,'active');
+						
 						current_category = $getAtr(this,'name');
 						current_table = $getAtr(this,'id');
 						
 						$get('#cur-content-name').innerHTML = '(' + $getAtr(this,'name') + ')';
-						var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
+						$get('#cur-element-name').innerHTML = '';
 						$ajax(url,'class=' + $getAtr(this,'cmd') + '&action=select',createContent);
 					});
 				}
 			}
 			
 			var createContent = function(server){
-				//pobraliśmy wszystko z danej kategorii, więc wyświetlamy to w formie przycisków, aby móc edytować konkrety rekord
+				//pobraliśmy wszystko z danej kategorii, więc wyświetlamy to w formie przycisków, aby móc edytować konkretny rekord
 				var response = JSON.parse(server.response);			
 
 				$get("#contents-container").innerHTML = '';
 				$get("#element-container").innerHTML = '';
 				
-				//jeśli to nie jest tablica, to znaczy że wystąpił błąd nieznanej komendy
+				//jeśli to nie jest tablica, to znaczy że wystąpił błąd przy pobieraniu
 				if(!Array.isArray(response)){
 					$get("#message").innerHTML = '<div class="error"><h4>' + response + '</h4></div>';
 					return;
@@ -179,15 +189,21 @@
 					});
 				}
 				
-				/*
-				var btn = $create('', 'button', 'Dodaj nowy');
+				var btn = $create('', 'button new_btn', 'Dodaj nowy');
 				$get("#contents-container").appendChild(btn);
 				
 				btn.addEventListener('click',function(){
-					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
-					$ajax(url,'class=' + tables[current_table].command + '&action=insert&value=' + JSON.stringify(tables[current_table].show[0]),saveData, '', '');
+					//$ajax(url,'class=' + tables[current_table].command + '&action=insert&value=' + JSON.stringify(tables[current_table].show[0]),saveData, '', '');
+					//$ajax(url,'class=' + tables[current_table].command + '&action=insert&value=',saveData, '', '');
+					var actives = $get('#step2 .active');
+					for(var i = 0; i < actives.length; i++){
+						$removeClass(actives[i],'active');
+					}
+					current_element = $getAtr(this,'id');
+					$addClass(this,'active');
+					$get('#cur-element-name').innerHTML = '(\'nowy\')';
+					editData(true);
 				});
-				*/
 				
 				/*
 				for(var i = 0; i < response.length; i++){
@@ -197,16 +213,30 @@
 				*/
 			}
 			
-			function editData(){
-				var data = variables[current_category][current_element];
+			function editData(is_new){
+				if(is_new == undefined) is_new = false;
+				var data;
+				if(!is_new){
+					data = variables[current_category][current_element];
+				}
+				else{
+					data = variables[current_category][0];
+				}
 				var form_container = $get("#element-container");
 				form_container.innerHTML = '';
+
+				var first = true;
 				for (var key in data){
 					if(data.hasOwnProperty(key)){
 						var row = $create('','row');
 						var label = $create('','f-left m-1',key,'label');
 						var input = $create('','f-right m-1','','input');
-						input.value = data[key];
+						if(first){
+							input.disabled = 'disabled';
+							first = false;
+						}
+						if(!is_new)
+							input.value = data[key];
 						row.appendChild(label);
 						row.appendChild(input);
 						form_container.appendChild(row);
@@ -220,8 +250,10 @@
 						var val = $get("#element-container input")[i].value;
 						data[key] = val;
 					}
-					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
-					$ajax(url,'class=' + tables[current_table].command + '&action=update&value=' + JSON.stringify(data),saveData, '', '');
+					var action;
+					if(is_new) action = 'insert';
+					else action = 'update';
+					$ajax(url,'class=' + tables[current_table].command + '&action=' + action + '&value=' + JSON.stringify(data),saveData, '', '');
 				});
 				
 				var btn = $create('', 'button', 'Usuń');
@@ -231,12 +263,12 @@
 					var val = $get("#element-container input")[0].value;
 					delete data;
 					var where = key + ' = ' + val;
-					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
 					$ajax(url,'class=' + tables[current_table].command + '&action=delete&where=' + where,saveData, '', '');
 				});
 				
 				
 				//tymczasowo do testów
+				/*
 				var btn = $create('', 'button', 'Dodaj nowy');
 				form_container.appendChild(btn);
 				btn.addEventListener('click',function(){
@@ -245,9 +277,8 @@
 						var val = $get("#element-container input")[i].value;
 						data[key] = val;
 					}
-					var url = 'http://www.xampp.fl/IO_edytor/cmd.php';//trzeba ustawić własny url do pliku
 					$ajax(url,'class=' + tables[current_table].command + '&action=insert&value=' + JSON.stringify(data),saveData, '', '');
-				});
+				});*/
 			}
 			
 			var saveData = function(server){
