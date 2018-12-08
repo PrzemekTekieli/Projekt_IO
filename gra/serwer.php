@@ -5,6 +5,7 @@ $conn = new mysqli("localhost", "root", "", "projekt");
 $logged = false;
 $player = "";
 $postac = "";
+$nazwa_potwora = "";
 if ($conn->connect_error)
     die("Connection failed: " . $conn->connect_error);
     
@@ -16,6 +17,8 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
     global $postac;
 	global $x;
 	global $y;
+	global $nazwa_potwora;
+	
     // wypisujemy w konsoli to, co przyszło
     printf("Client %s sent: %s\n",$clientID,$message);
     
@@ -26,31 +29,27 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
         $row = $result->fetch_assoc();
         if($row["haslo"] == $pieces[2]) {
             $Server->wsSend($clientID, "true");
-            printf("true\n");
             $player = $pieces[1];
 			$sql = "select nazwa from Postacie where login = '$pieces[1]'";
 			$result = $conn->query($sql);
 			if($result->num_rows > 0) {
-				$Server->wsSend($clientID, "Twoje postacie to:");
+				$Server->wsSend($clientID, "Najpierw wybierz postać poleceniem 'postac ...'\n\nTwoje postacie to:");
 				while($row = $result->fetch_assoc()) {
 					$Server->wsSend($clientID, "".$row['nazwa']."");
 				}
 			}
 			else{
-				$Server->wsSend($clientID, "Nie posiadasz żadnych postaci.");
+				$Server->wsSend($clientID, "Nie posiadasz żadnych postaci. Stwórz nową poleceniem 'postac ...'");
 			}
         } else {
             $Server->wsSend($clientID, "false");
-            printf("false\n");
         }
     }
     else if($pieces[0] == "log") {
         $Server->wsSend($clientID, "false");
-        printf("false\n");
     }
     else if($pieces[0] == "postac" && !isset($pieces[1])) { // wybierz postac
         $Server->wsSend($clientID, "Po poleceniu 'postac' wpisz nazwę postaci, którą chcesz stworzyć lub wybierz już istniejącą");
-        printf("Po poleceniu 'postac' wpisz nazwę postaci, którą chcesz stworzyć lub wybierz już istniejącą\n");
     }
     else if($pieces[0] == "postac") {
         $sql3 = "select login, nazwa from Postacie";
@@ -83,11 +82,17 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
             $postac = $pieces[1];
 			$x = 0;
 			$y = 0;
-            $sql = "insert into Postacie (login, id_lokacji, id_statystyki, nazwa) values ('$player', '1', '1', '$postac')";
+			$sql = "select max(id_lokacji) as max_lok, max(id_statystyki) as max_stat from Postacie";
+			$result = $conn->query($sql)->fetch_assoc();
+			$id_lok = $result["max_lok"] + 1;
+			$id_stat = $result["max_stat"] + 1;
+            $sql = "insert into Postacie (login, id_lokacji, id_statystyki, nazwa) values ('$player', $id_lok, $id_stat, '$postac')";
+            $conn->query($sql);
 			$sql = "select id_postaci from Postacie where nazwa = '$postac'";
 			$result = $conn->query($sql)->fetch_assoc();
 			$id_pos = $result['id_postaci'];
 			$sql = "insert into Ekwipunek (id_postaci, pieniadze) values ('$id_pos', '10')";
+			$conn->query($sql);
 			$sql = "select opis from Lokacje where id_lokacji = '1'";
 			$result = $conn->query($sql)->fetch_assoc();
             $Server->wsSend($clientID, "Stworzyłeś i wybrałeś postać $postac");
@@ -108,7 +113,10 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
 					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+					$nazwa_potwora = $nazwa;
 				}
+				else
+				    $nazwa_potwora = "";
 			}
         }
         else
@@ -128,7 +136,10 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
 					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+					$nazwa_potwora = $nazwa;
 				}
+				else
+				    $nazwa_potwora = "";
 			}
         }
         else
@@ -148,7 +159,10 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
 					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+					$nazwa_potwora = $nazwa;
 				}
+				else
+				    $nazwa_potwora = "";
 			}
         }
         else
@@ -168,11 +182,24 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
 					$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+					$nazwa_potwora = $nazwa;
 				}
+				else
+				    $nazwa_potwora = "";
 			}
         }
         else
             $Server->wsSend($clientID, "Najpierw wybierz postać poleceniem: postac ...");
+    }
+    else if($pieces[0] == "walcz") {
+        if($nazwa_potwora == "")
+            $Server->wsSend($clientID, "W tym miejscu nie ma żadnego potwora");
+        else if($nazwa_potwora == $pieces[1])
+            $Server->wsSend($clientID, "Teraz walczysz");
+        else if(!isset($pieces[1]))
+            $Server->wsSend($clientID, "Po poleceniu 'walcz' podaj nazwę potwora, z którym chcesz walczyć");
+        else
+            $Server->wsSend($clientID, "Tutaj nie ma takiego potwora");
     }
 }
 
