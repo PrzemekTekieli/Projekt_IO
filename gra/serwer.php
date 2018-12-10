@@ -23,8 +23,8 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
     printf("Client %s sent: %s\n",$clientID,$message);
     
     $pieces = explode(" ", $message);
-    $sql2 = "SELECT haslo FROM Gracze where login = '$pieces[1]'";
-    $result = $conn->query($sql2);
+    $sql = "SELECT haslo FROM Gracze where login = '$pieces[1]'";
+    $result = $conn->query($sql);
     if($pieces[0] == "log" && $pieces[1] != "" && $result->num_rows == 1) { // zaloguj
         $row = $result->fetch_assoc();
         if($row["haslo"] == $pieces[2]) {
@@ -41,7 +41,8 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 			else{
 				$Server->wsSend($clientID, "Nie posiadasz żadnych postaci. Stwórz nową poleceniem 'postac ...'");
 			}
-        } else {
+        }
+        else {
             $Server->wsSend($clientID, "false");
         }
     }
@@ -69,7 +70,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 			$sql = "select id_lokacji from Postacie where nazwa = '$postac'";
 			$result = $conn->query($sql)->fetch_assoc();
 			$id_lok = $result['id_lokacji'];
-			$sql = "select x,y,opis from Lokacje where id_lokacji = '$id_lok'";
+			$sql = "select opis, x, y from Lokacje where id_lokacji = '$id_lok'";
 			$result = $conn->query($sql)->fetch_assoc();
 			$x = $result['x'];
 			$y = $result['y'];
@@ -80,18 +81,19 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
             $Server->wsSend($clientID, "Podana nazwa już istnieje.");
         else {
             $postac = $pieces[1];
-			$x = 0;
-			$y = 0;
-			$sql = "select max(id_lokacji) as max_lok, max(id_statystyki) as max_stat from Postacie";
+            $x = 0;
+            $y = 0;
+			$sql = "select max(id_statystyki) as max_stat from Postacie";
 			$result = $conn->query($sql)->fetch_assoc();
-			$id_lok = $result["max_lok"] + 1;
 			$id_stat = $result["max_stat"] + 1;
-            $sql = "insert into Postacie (login, id_lokacji, id_statystyki, nazwa) values ('$player', $id_lok, $id_stat, '$postac')";
+            $sql = "insert into Postacie (login, id_lokacji, id_statystyki, nazwa) values ('$player', 1, $id_stat, '$postac')";
             $conn->query($sql);
 			$sql = "select id_postaci from Postacie where nazwa = '$postac'";
 			$result = $conn->query($sql)->fetch_assoc();
 			$id_pos = $result['id_postaci'];
 			$sql = "insert into Ekwipunek (id_postaci, pieniadze) values ('$id_pos', '10')";
+			$conn->query($sql);
+			$sql = "insert into Statystyka (id_statystyki, atak, obrona, hp) values ($id_stat, 30, 30, 100)";
 			$conn->query($sql);
 			$sql = "select opis from Lokacje where id_lokacji = '1'";
 			$result = $conn->query($sql)->fetch_assoc();
@@ -194,8 +196,48 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
     else if($pieces[0] == "walcz") {
         if($nazwa_potwora == "")
             $Server->wsSend($clientID, "W tym miejscu nie ma żadnego potwora");
-        else if($nazwa_potwora == $pieces[1])
+        else if($nazwa_potwora == $pieces[1]) {
             $Server->wsSend($clientID, "Teraz walczysz");
+            $sql = "select atak, obrona, hp from Statystyka join Postacie using(id_statystyki) where nazwa = '$postac'";
+            $result = $conn->query($sql)->fetch_assoc();
+            $sql = "select atak, obrona, hp from Statystyka join Potwory using(id_statystyki) where nazwa = '$nazwa_potwora'";
+            $result2 = $conn->query($sql)->fetch_assoc();
+            if($result["atak"] - $result2["obrona"] > 0)
+                $moja_sila = $result["atak"] - $result2["obrona"];
+            else
+                $moja_sila = 1;
+            if($result2["atak"] - $result["obrona"] > 0)
+                $sila = $result2["atak"] - $result["obrona"];
+            else
+                $sila = 1;
+            $moje_hp = $result["hp"];
+            $hp = $result2["hp"];
+            while($moje_hp > 0 && $hp > 0) {
+                $hp -= $moja_sila;
+                if($hp > 0)
+                    $moje_hp -= $sila;
+            }
+            if($moje_hp > 0) {
+                $Server->wsSend($clientID, "Pokonałeś $nazwa_potwora");
+                $Server->wsSend($clientID, "Twoje hp wynosi $moje_hp");
+                $sql = "update Ekwipunek set pieniadze = pieniadze + (select pieniadze from Potwory where nazwa = '$nazwa_potwora') where id_postaci = (select id_postaci from Postacie where nazwa = '$postac')";
+                $conn->query($sql);
+                $sql = "update Statystyka set hp = $moje_hp where id_statystyki= (select id_statystyki from Postacie where nazwa='$postac')";
+                $conn->query($sql);
+                $sql = "update Statystyka set atak = atak+5, obrona = obrona+5 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac')";
+                $conn->query($sql);
+            }
+            else {
+                $Server->wsSend($clientID, "Przegrałeś. Wracasz do lokacji startowej");
+                $x = 0;
+                $y = 0;
+                $sql = "update Postacie set id_lokacji = 1 where nazwa = '$postac'";
+                $conn->query($sql);
+                $sql = "update Statystyka set hp=100 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac'";
+                $conn->query($sql);
+                $nazwa_potwora = "";
+            }
+        }
         else if(!isset($pieces[1]))
             $Server->wsSend($clientID, "Po poleceniu 'walcz' podaj nazwę potwora, z którym chcesz walczyć");
         else
