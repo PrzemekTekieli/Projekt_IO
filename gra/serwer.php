@@ -6,6 +6,9 @@ $logged = false;
 $player = "";
 $postac = "";
 $nazwa_potwora = "";
+$potwor_do_zabicia = "";
+$ilosc_potworow = 0;
+$pieniadze = 0;
 if ($conn->connect_error)
     die("Connection failed: " . $conn->connect_error);
     
@@ -18,6 +21,9 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 	global $x;
 	global $y;
 	global $nazwa_potwora;
+	global $potwor_do_zabicia;
+	global $ilosc_potworow;
+	global $pieniadze;
 	global $opis;
 	global $kierunki;
 	
@@ -117,7 +123,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$y = $y - 1;
 			}
 			else{
-				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac, $clientID);
 				$kierunki = mozliweKierunki($conn, $x, $y);
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
@@ -142,7 +148,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$x = $x - 1;
 			}
 			else{
-				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac, $clientID);
 				$kierunki = mozliweKierunki($conn, $x, $y);
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
@@ -167,7 +173,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$y = $y + 1;
 			}
 			else{
-				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac, $clientID);
 				$kierunki = mozliweKierunki($conn, $x, $y);
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
@@ -192,7 +198,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$x = $x + 1;
 			}
 			else{
-				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac, $clientID);
 				$kierunki = mozliweKierunki($conn, $x, $y);
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				if($id_potw != 0){
@@ -240,7 +246,18 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
                 $conn->query($sql);
                 $sql = "update Statystyka set atak = atak+5, obrona = obrona+5 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac')";
                 $conn->query($sql);
-				$nazwa_potwora == "";
+                if($potwor_do_zabicia == $nazwa_potwora) {
+                    $ilosc_potworow--;
+                    echo "Pomniejszam";
+                    if($ilosc_potworow == 0) {
+                        echo "Wygrałeś";
+                        $potwor_do_zabicia = "";
+                        $Server->wsSend($clientID, "Ukończyłeś misję. Dostajesz pieniądze: $pieniadze");
+                        $sql = "update Postacie set pieniadze=pieniadze+$pieniadze where id_postaci= (select id_postaci from Postacie where nazwa='$postac')";
+                        $conn->query($sql);
+                    }
+                }
+				$nazwa_potwora = "";
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				$Server->wsSend($clientID, "Możliwe kierunki: ".$kierunki."");
             }
@@ -253,7 +270,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
                 $sql = "update Statystyka set hp=100 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac'";
                 $conn->query($sql);
                 $nazwa_potwora = "";
-				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac);
+				list($opis, $id_potw, $nazwa) = wejscieDoLokacji($conn, $x, $y, $postac, $clientID);
 				$kierunki = mozliweKierunki($conn, $x, $y);
 				$Server->wsSend($clientID, "Jesteś w ".$opis."");
 				$Server->wsSend($clientID, "Możliwe kierunki: ".$kierunki."");
@@ -266,7 +283,12 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
     }
 }
 
-function wejscieDoLokacji($conn, $x, $y, $postac) {
+function wejscieDoLokacji($conn, $x, $y, $postac, $clientID) {
+    global $Server;
+    global $potwor_do_zabicia;
+    global $ilosc_potworow;
+    global $pieniadze;
+    
 	$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
 	$result = $conn->query($sql)->fetch_assoc();
 	$id_lok = $result['id_lokacji'];
@@ -290,6 +312,21 @@ function wejscieDoLokacji($conn, $x, $y, $postac) {
 		$result = $conn->query($sql)->fetch_assoc();
 		$nazwa = $result['nazwa'];
 	}
+	$sql = "select nazwa, zleceniodawca from NPC join Lokacje using(id_lokacji) where x=$x and y=$y";
+	$result = $conn->query($sql);
+	if($result->num_rows > 0) {
+	    $npc = $row["nazwa"];
+	    $row = $result->fetch_assoc();
+	    $Server->wsSend($clientID, "Znajduje się tu również NPC: $npc");
+	    if($row["zleceniodawca"]) {
+	        $sql = "select * from Misje join Potwory on id_potwora_do_zabicia=id_potwora";
+	        $result = $conn->query($sql)->fetch_assoc();
+	        $Server->wsSend($clientID, "Masz misję: ".$result["opis"].", ".$result["iloscDoZabicia"]." potworów o nazwie ".$result["nazwa"].", pieniadze ".$result["pieniadze"]);
+	        $potwor_do_zabicia = $result["nazwa"];
+	        $ilosc_potworow = $result["iloscDoZabicia"];
+	        $pieniadze = $result["pieniadze"];
+        }
+    }
 	return array($opis, $id_potw, $nazwa);
 }
 
