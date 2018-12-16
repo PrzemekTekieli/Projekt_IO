@@ -14,6 +14,12 @@ function handle(e) {
     }
 }
 
+function logHandle(e) {
+    if(e.keyCode === 13) {
+        log();
+    }
+}
+
 function load() {
     document.getElementById('t1').value='';
      
@@ -29,8 +35,10 @@ function log() {
             document.getElementById('body').innerHTML = '<div id="div1"><textarea readonly id="t1"></textarea><textarea rows="1" id="t2" placeholder="Tutaj wpisz polecenie..." onkeypress="handle(event);"></textarea></div>';
         }
         else if(event.data == "false")
-            document.getElementById('body').innerHTML = '<div>Login: <input type="text" id="login"><br>Hasło: <input type="password" id="haslo"> <input type="button" value="Zaloguj" onclick="log()"> <a href="register_form.html">Zarejestruj się</a></div>Nieprawidłowe nazwa lub/i hasło';
-        else
+            document.getElementById('body').innerHTML = '<table><tr><td>Login:</td><td><input type="text" id="login" onkeypress="logHandle(event)"></td></tr><tr><td>Hasło:</td><td><input type="password" id="haslo" onkeypress="logHandle(event)"> <input type="button" value="Zaloguj" onclick="log()"> <a href="register_form.html">Zarejestruj się</a></td></tr></table>Nieprawidłowe login i/lub hasło';
+        else {
             document.getElementById('t1').value += event.data+"\n";
+            document.getElementById('t1').scrollTop =  document.getElementById('t1').scrollHeight; // przewiń
+        }
     });
 }

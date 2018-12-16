@@ -1,3 +1,18 @@
+drop table Gracze cascade;
+drop table Ekwipunek cascade;
+drop table Kategoria cascade;
+drop table Lokacje cascade;
+drop table Misje cascade;
+drop table NPC cascade;
+drop table Postacie cascade;
+drop table Potwory cascade;
+drop table Przedmiot cascade;
+drop table Statystyka cascade;
+drop table Wystapienia cascade;
+drop table Zawartosc cascade;
+
+begin;
+
 create table Gracze (
     login       varchar(15) not null primary key,
     haslo       varchar(15) not null
@@ -85,7 +100,6 @@ create table Misje (
     id_nagrody              integer not null references Przedmiot
 );
 
-
 insert into Gracze (login, haslo) values
 ('jerry', 'kittens'),
 ('bla_cack', '$tudent'),
@@ -116,9 +130,9 @@ insert into Kategoria (id_kategorii, nazwa, opis) values
 insert into Postacie values
 (1, 'jerry', 1, 1, 'Alduin'),
 (2, 'jerry', 1, 2, 'Bezimienny'),
-(3, 'bla_cack', 4, 5, 'Geralt'),
-(4, 'komornik', 2, 3, 'Lars'),
-(5, 'bla_cack', 3, 2, 'Eldric');
+(3, 'bla_cack', 4, 3, 'Geralt'),
+(4, 'komornik', 2, 4, 'Lars'),
+(5, 'bla_cack', 3, 5, 'Eldric');
 
 insert into Ekwipunek values
 (1, 1, 2500),
@@ -135,18 +149,18 @@ insert into NPC values
 (5, 4, false, 'Nastain');
 
 insert into Potwory values
-(1, 2, 'Krowa', 3),
+(1, 1, 'Krowa', 3),
 (2, 2, 'Konik', 4),
 (3, 3, 'Smok', 456),
-(4, 1, 'Goryl', 523),
-(5, 4, 'Kuc', 23);
+(4, 4, 'Goryl', 523),
+(5, 5, 'Kuc', 23);
 
 insert into Przedmiot values
-(1, 3, 2, 'Super buty mocy', 234, 'Super mocne.'),
-(2, 1, 3, 'Rozwalone rękawice', 1, 'Praktycznie bezużyteczne.'),
+(1, 1, 2, 'Super buty mocy', 234, 'Super mocne.'),
+(2, 2, 3, 'Rozwalone rękawice', 1, 'Praktycznie bezużyteczne.'),
 (3, 3, 5, 'Garnek', 2, 'Zawsze coś.'),
-(4, 1, 3, 'Kolczaste rękawice', 200, 'Drap z rozwagą!'),
-(5, 1, 1, 'Naramienniki Pradawnego Boga', 10000, 'Tylko dla wyznawców.');
+(4, 4, 3, 'Kolczaste rękawice', 200, 'Drap z rozwagą!'),
+(5, 5, 1, 'Naramienniki Pradawnego Boga', 10000, 'Tylko dla wyznawców.');
 
 insert into Wystapienia values
 (2, 1, 25),
@@ -161,3 +175,5 @@ insert into Zawartosc values
 (3, 3, 1),
 (2, 2, 14),
 (1, 2, 3);
+
+commit;

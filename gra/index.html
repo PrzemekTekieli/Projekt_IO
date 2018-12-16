@@ -5,11 +5,13 @@
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body id="body">
-        <div>
-            Login: <input type="text" id="login"><br>
-            Hasło: <input type="password" id="haslo">
-            <input type="button" value="Zaloguj" onclick="log()">
-            <a href="register_form.html">Zarejestruj się</a>
-        </div>
+        <table>
+            <tr>
+                <td>Login:</td><td><input type="text" id="login" onkeypress="logHandle(event)"></td>
+            </tr>
+            <tr>
+                <td>Hasło:</td><td><input type="password" id="haslo" onkeypress="logHandle(event)"> <input type="button" value="Zaloguj" onclick="log()"> <a href="register_form.html">Zarejestruj się</a></td>
+            </tr>
+        </table>
     </body>
 </html>
