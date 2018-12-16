@@ -5,16 +5,44 @@
 //nazwa klasy musi być zgodna z command w pliku index.html
 //nieco bardziej skomplikowana klasa niż player
 class character extends handler{
-	private $tab_name = 'postacie p';
-	private $foreign_tab = 'gracze g';
-	private $foreign_key = 'id_gracza';
+	private $tab_name = 'postacie';
+	private $f_tabs = ['gracze g','lokacje l'];
+	private $f_keys = ['id_gracza','id_lokacji'];
+	private $f_names = [['g.login'],['l.x','l.y']];
+	private $f_visible = ['gracz','lokacja'];
 	
 	public function select(){//fajnie by też było to bardziej sparametryzować też, zamiast na stałe
-		$result = $this->db->query("SELECT p.*, g.login AS gracz FROM $this->tab_name INNER JOIN $this->foreign_tab USING($this->foreign_key) ORDER BY p.nazwa");
+		//$result = $this->db->query("SELECT * FROM $this->tab_name ORDER BY p.nazwa");
+		$result = $this->db->query("SELECT id_postaci, id_gracza, id_lokacji, nazwa FROM $this->tab_name ORDER BY nazwa");
 		//$result = $db->fetchAll($result);
 		$result = $this->db->fetchAssoc($result);
-
-		echo(json_encode($result));
+		
+		//tab - ponieważ te bardziej skomplikowane selecty będą miały atrybuty do selecta
+		$tab['result'] = $result;
+		
+		$options = $this->select_foreign();
+		$tab['options'] = $options;
+		
+		echo(json_encode($tab));
+	}
+	
+	private function select_foreign(){
+		$options = array();
+		for($i = 0; $i < sizeof($this->f_tabs); $i++){
+			$name = "(" . implode(",",$this->f_names[$i]) . ")";
+			$visible = $this->f_visible[$i];
+			$table = $this->f_tabs[$i];
+			$key = $this->f_keys[$i];
+			$result = $this->db->query("SELECT $key, $name FROM $table ORDER BY $name");
+			$index = $this->db->fetchColumn($result);
+			$res = $this->db->fetchColumn($result,1);
+			//na ostatnim indeksie mamy nazwy
+			$res[] = $visible;
+			$arr['index'] = $index;
+			$arr['name'] = $res;
+			$options[] = $arr;
+		}
+		return $options;
 	}
 	
 	public function insert($val){
@@ -28,6 +56,11 @@ class character extends handler{
 				$first = false;
 			}
 			else{
+				//TODO usunąć, i zrobić id_statystyki normalne
+				if($key == 'nazwa'){
+					$query .= "'1',";
+				}
+				
 				$query .= "'$value',";
 			}
 		}

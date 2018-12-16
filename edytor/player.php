@@ -8,8 +8,12 @@ class player extends handler{
 		$result = $this->db->query("SELECT * FROM $this->tab_name ORDER BY login");
 		//$result = $db->fetchAll($result);
 		$result = $this->db->fetchAssoc($result);
-
-		echo(json_encode($result));
+		
+		//tab - ponieważ te bardziej skomplikowane selecty będą miały atrybuty do selecta
+		$tab['result'] = $result;
+		$tab['options'] = '';
+		
+		echo(json_encode($tab));
 	}
 	
 	public function insert($val){

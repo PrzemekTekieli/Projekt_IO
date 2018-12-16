@@ -26,6 +26,10 @@ class my_connection{
 	public function fetchAssoc($result){
 		return pg_fetch_all($result);
 	}
+	
+	//z wejściowych danych bierzemy tylko pierwszą kolumnę jako tablicę
+	public function fetchColumn($result,$column = 0){
+		return pg_fetch_all_columns($result,$column);
+	}
 }
-
 ?>

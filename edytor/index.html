@@ -152,19 +152,23 @@
 			var createContent = function(server){
 				//pobraliśmy wszystko z danej kategorii, więc wyświetlamy to w formie przycisków, aby móc edytować konkretny rekord
 				var response = JSON.parse(server.response);			
-
 				$get("#contents-container").innerHTML = '';
 				$get("#element-container").innerHTML = '';
 				
 				//jeśli to nie jest tablica, to znaczy że wystąpił błąd przy pobieraniu
-				if(!Array.isArray(response)){
+				if(typeof(response) != 'object'){
 					$get("#message").innerHTML = '<div class="error"><h4>' + response + '</h4></div>';
 					return;
 				}
 				$get("#message").innerHTML = '#';
 				
+				//rozpakuwujemy response
+				var options = response['options'];
+				response = response['result'];
+				
 				//przepisujemy zawartość odpowiedzi do zmiennej
 				variables[current_category] = response;
+				variables[current_category + '-options'] = options;
 				
 				var show_name = tables[current_table].show;
 				for(var i = 0; i < response.length; i++){
@@ -224,30 +228,65 @@
 				}
 				var form_container = $get("#element-container");
 				form_container.innerHTML = '';
-
+				
 				var first = true;
+				var foreign_index = 0;
 				for (var key in data){
 					if(data.hasOwnProperty(key)){
+						//gdy klucz zaczyna się od id_ i nie jest pierwszy, oznacza że to klucz obcy
+						//zamiast wyświetlać id tego klucza, wyświetlamy dane przekazane w opcjach
+						var simple_field = true;
+						if(!first && key.slice(0,3) == 'id_'){
+							var options = variables[current_category + '-options'][foreign_index];
+							foreign_index++;
+							var len = options['name'].length;
+							simple_field = false;
+							var label_name = options['name'][len-1];
+						}
+						else{
+							var label_name = key;
+						}
+						
 						var row = $create('','row');
-						var label = $create('','f-left m-1',key,'label');
+						var label = $create('','f-left m-1',label_name,'label');
 						var input = $create('','f-right m-1','','input');
 						if(first){
 							input.disabled = 'disabled';
 							first = false;
 						}
-						if(!is_new)
-							input.value = data[key];
+						
+						if(!simple_field){
+							input = $create('','f-right m-1','','select');
+							for(var i = 0; i < options['index'].length; i++){
+								var opt = $create('','',options['name'][i],'option');
+								opt.value = options['index'][i];
+								if(options['index'][i] == data[key]){
+									opt.selected = 'selected';
+								}
+								input.appendChild(opt);
+							}
+						}
+						else{
+							if(!is_new)
+								input.value = data[key];
+						}
 						row.appendChild(label);
 						row.appendChild(input);
 						form_container.appendChild(row);
+						
+						//select nie dostosowuje szerokości tak jak inputy, więc bierzemy szerokość poprzedniego inputa/selecta
+						if(!simple_field){
+							input.style.width = row.previousSibling.lastChild.offsetWidth + "px";
+						}
 					}
 				}
 				var btn = $create('', 'button', 'Zapisz');
 				form_container.appendChild(btn);
 				btn.addEventListener('click',function(){
 					for (var i = 0; i < Object.keys(data).length; i++){
-						var key = $get("#element-container label")[i].innerHTML;
-						var val = $get("#element-container input")[i].value;
+						//var key = $get("#element-container label")[i].innerHTML;
+						var key = Object.keys(data)[i];
+						var val = $get("#element-container .row")[i].lastChild.value;
 						data[key] = val;
 					}
 					var action;
