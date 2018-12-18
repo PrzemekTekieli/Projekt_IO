@@ -14,7 +14,8 @@ drop table Zawartosc cascade;
 begin;
 
 create table Gracze (
-    login       varchar(15) not null primary key,
+    id_gracza   serial primary key,
+    login       varchar(15) not null,
     haslo       varchar(15) not null
 );
 
@@ -40,7 +41,7 @@ create table Kategoria (
 
 create table Postacie (
     id_postaci      serial primary key,
-    login           varchar(15) not null references Gracze,
+    id_gracza       integer not null references Gracze,
     id_lokacji      integer not null references Lokacje,
     id_statystyki   integer not null references Statystyka,
     nazwa           varchar(20)
