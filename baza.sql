@@ -108,39 +108,39 @@ insert into Gracze (login, haslo) values
 ('kurnik', 'kogut'),
 ('sweetie', 'chocco');
 
-insert into Lokacje (id_lokacji, x, y, opis) values
-(1, 0, 0, 'Lokacja startowa'),
-(2, 0, 1, 'Trochę obok'),
-(3, 1, 0, 'W drugą stronę'),
-(4, 1, 1, 'Na ukos');
+insert into Lokacje (x, y, opis) values
+(0, 0, 'Lokacja startowa'),
+(0, 1, 'Trochę obok'),
+(1, 0, 'W drugą stronę'),
+(1, 1, 'Na ukos');
 
-insert into Statystyka (id_statystyki, atak, obrona, hp) values
-(1, 1, 1, 1),
-(2, 2, 3, 10),
-(3, 40, 35, 100),
-(4, 42, 5, 12),
-(5, 3, 3, 3);
+insert into Statystyka (atak, obrona, hp) values
+(1, 1, 1),
+(2, 3, 10),
+(40, 35, 100),
+(42, 5, 12),
+(3, 3, 3);
 
-insert into Kategoria (id_kategorii, nazwa, opis) values
-(1, 'Naramiennik', 'Coś co zakładasz dla ochrony kończyn górnych.'),
-(2, 'Buty', 'Zakładasz na stopy.'),
-(3, 'Rękawice', 'Zakładasz na dłonie.'),
-(4, 'Spodnie', 'Zakładasz na nogi.'),
-(5, 'Hełm', 'Zakładasz na łeb i masz zakuty.');
+insert into Kategoria (nazwa, opis) values
+('Naramiennik', 'Coś co zakładasz dla ochrony kończyn górnych.'),
+('Buty', 'Zakładasz na stopy.'),
+('Rękawice', 'Zakładasz na dłonie.'),
+('Spodnie', 'Zakładasz na nogi.'),
+('Hełm', 'Zakładasz na łeb i masz zakuty.');
 
-insert into Postacie values
-(1, 'jerry', 1, 1, 'Alduin'),
-(2, 'jerry', 1, 2, 'Bezimienny'),
-(3, 'bla_cack', 4, 3, 'Geralt'),
-(4, 'komornik', 2, 4, 'Lars'),
-(5, 'bla_cack', 3, 5, 'Eldric');
+insert into Postacie (id_gracza, id_lokacji, id_statystyki, nazwa) values
+(1, 1, 1, 'Alduin'),
+(1, 1, 2, 'Bezimienny'),
+(2, 4, 3, 'Geralt'),
+(3, 2, 4, 'Lars'),
+(2, 3, 5, 'Eldric');
 
-insert into Ekwipunek values
-(1, 1, 2500),
-(2, 2, 100),
-(3, 3, 42),
-(4, 4, 5),
-(5, 5, 8219);
+insert into Ekwipunek (id_ekwipunku, id_postaci, pieniadze) values
+(1, 2500),
+(2, 100),
+(3, 42),
+(4, 5),
+(5, 8219);
 
 insert into NPC values
 (1, 1, true, 'John'),
@@ -149,19 +149,19 @@ insert into NPC values
 (4, 4, false, 'Zenon'),
 (5, 4, false, 'Nastain');
 
-insert into Potwory values
-(1, 1, 'Krowa', 3),
-(2, 2, 'Konik', 4),
-(3, 3, 'Smok', 456),
-(4, 4, 'Goryl', 523),
-(5, 5, 'Kuc', 23);
+insert into Potwory (id_statystyki, nazwa, pieniadze) values
+(1, 'Krowa', 3),
+(2, 'Konik', 4),
+(3, 'Smok', 456),
+(4, 'Goryl', 523),
+(5, 'Kuc', 23);
 
-insert into Przedmiot values
-(1, 1, 2, 'Super buty mocy', 234, 'Super mocne.'),
-(2, 2, 3, 'Rozwalone rękawice', 1, 'Praktycznie bezużyteczne.'),
-(3, 3, 5, 'Garnek', 2, 'Zawsze coś.'),
-(4, 4, 3, 'Kolczaste rękawice', 200, 'Drap z rozwagą!'),
-(5, 5, 1, 'Naramienniki Pradawnego Boga', 10000, 'Tylko dla wyznawców.');
+insert into Przedmiot (id_statystyki, id_kategorii, nazwa, cena, opis) values
+(1, 2, 'Super buty mocy', 234, 'Super mocne.'),
+(2, 3, 'Rozwalone rękawice', 1, 'Praktycznie bezużyteczne.'),
+(3, 5, 'Garnek', 2, 'Zawsze coś.'),
+(4, 3, 'Kolczaste rękawice', 200, 'Drap z rozwagą!'),
+(5, 1, 'Naramienniki Pradawnego Boga', 10000, 'Tylko dla wyznawców.');
 
 insert into Wystapienia values
 (2, 1, 25),
