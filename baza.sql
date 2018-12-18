@@ -96,7 +96,7 @@ create table Misje (
     opis                    varchar(500),
     id_docelowej_lokacji    integer references Lokacje,
     id_potwora_do_zabicia   integer references Potwory,
-    iloscDoZabicia          integer,
+    ilosc_do_zabicia          integer,
     pieniadze               integer,
     id_nagrody              integer references Przedmiot
 );
