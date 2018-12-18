@@ -94,11 +94,11 @@ create table Zawartosc (
 create table Misje (
     id_misji                serial primary key,
     opis                    varchar(500),
-    id_docelowej_lokacji    integer not null references Lokacje,
-    id_potwora_do_zabicia   integer not null references Potwory,
+    id_docelowej_lokacji    integer references Lokacje,
+    id_potwora_do_zabicia   integer references Potwory,
     iloscDoZabicia          integer,
     pieniadze               integer,
-    id_nagrody              integer not null references Przedmiot
+    id_nagrody              integer references Przedmiot
 );
 
 insert into Gracze (login, haslo) values
