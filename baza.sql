@@ -96,7 +96,7 @@ create table Misje (
     opis                    varchar(500),
     id_docelowej_lokacji    integer references Lokacje,
     id_potwora_do_zabicia   integer references Potwory,
-    ilosc_do_zabicia          integer,
+    ilosc_do_zabicia        integer,
     pieniadze               integer,
     id_nagrody              integer references Przedmiot
 );
@@ -176,5 +176,10 @@ insert into Zawartosc values
 (3, 3, 1),
 (2, 2, 14),
 (1, 2, 3);
+
+insert into Misje (opis, id_docelowej_lokacji, id_potwora_do_zabicia, ilosc_do_zabicia, pieniadze, id_nagrody) values
+('Zabij 2 goryle', null, 4, 2, 150, null),
+('Dotrzyj do W druga strone', 3, null, null, 25, null);
+
 
 commit;
