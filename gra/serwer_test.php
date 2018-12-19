@@ -8,7 +8,8 @@ $postac = "";
 $nazwa_potwora = "";
 $potwor_do_zabicia = "";
 $ilosc_potworow = 0;
-$pieniadze = 0;
+$pieniadze_nagr = 0;
+$docelowa_lokacja = 0;
 if ($conn->connect_error)
     die("Connection failed: " . $conn->connect_error);
     
@@ -23,9 +24,13 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 	global $nazwa_potwora;
 	global $potwor_do_zabicia;
 	global $ilosc_potworow;
-	global $pieniadze;
+	global $docelowa_lokacja;
+	global $pieniadze_nagr;
 	global $opis;
 	global $kierunki;
+	global $npc;
+	global $zleceniodawca;
+	global $id_misji;
 	
     // wypisujemy w konsoli to, co przyszło
     printf("Client %s sent: %s\n",$clientID,$message);
@@ -203,15 +208,16 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
                 $conn->query($sql);
                 $sql = "update Statystyka set atak = atak+5, obrona = obrona+5 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac')";
                 $conn->query($sql);
-                if($potwor_do_zabicia == $nazwa_potwora) {
+                if($potwor_do_zabicia == $nazwa_potwora && $id_misji != 0) {
                     $ilosc_potworow--;
                     echo "Pomniejszam\n\n";
                     if($ilosc_potworow == 0) {
                         echo "Wygrałeś\n\n";
                         $potwor_do_zabicia = "";
-                        $Server->wsSend($clientID, "Ukończyłeś misję. Dostajesz pieniądze: $pieniadze");
-                        $sql = "update Ekwipunek set pieniadze=pieniadze+$pieniadze where id_postaci= (select id_postaci from Postacie where nazwa='$postac')";
+                        $Server->wsSend($clientID, "Ukończyłeś misję. Dostajesz pieniądze: $pieniadze_nagr");
+                        $sql = "update Ekwipunek set pieniadze=pieniadze+$pieniadze_nagr where id_postaci= (select id_postaci from Postacie where nazwa='$postac')";
                         $conn->query($sql);
+						$id_misji = 0;
                     }
                 }
 				$nazwa_potwora = "";
@@ -243,11 +249,161 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 			$Server->wsSend($clientID, "".$row['nazwa']."");
 		}
 	}
+	else if($pieces[0] == "info") {
+		$Server->wsSend($clientID, "Postać: ".$postac."");
+		$sql = "select * from Statystyka where id_statystyki = (select id_statystyki from Postacie where nazwa = '$postac')";
+		$result = $conn->query($sql)->fetch_assoc();
+		$Server->wsSend($clientID, "Atak: ".$result['atak']."");
+		$Server->wsSend($clientID, "Obrona: ".$result['obrona']."");
+		$Server->wsSend($clientID, "Punkty zdrowia: ".$result['hp']."");
+		$sql = "select pieniadze from Ekwipunek where id_postaci = (select id_postaci from Postacie where nazwa = '$postac')";
+		$result = $conn->query($sql)->fetch_assoc();
+		$Server->wsSend($clientID, "Pieniądze: ".$result['pieniadze']."");
+	}
+	else if($pieces[0] == "wez" && $pieces[1] == "misje") {
+		if($zleceniodawca) {
+			$sql = "select max(id_misji) as max_id from Misje";
+			$result = $conn->query($sql)->fetch_assoc();
+			$id_misji = rand(1, $result['max_id']);
+			$sql = "select * from Misje where id_misji = '$id_misji'";
+			$result = $conn->query($sql)->fetch_assoc();
+			if($result['id_potwora_do_zabicia']) {
+				$potw_id = $result["id_potwora_do_zabicia"];
+				$sql2 = "select nazwa from Potwory where id_potwora = '$potw_id'";
+				$result2 = $conn->query($sql2)->fetch_assoc();
+				$Server->wsSend($clientID, "Masz misję: ".$result["opis"].", pokonaj ".$result["ilosc_do_zabicia"]." potworów o nazwie ".$result2["nazwa"].", pieniadze ".$result["pieniadze"]."");
+				$potwor_do_zabicia = $result2["nazwa"];
+				$ilosc_potworow = $result["ilosc_do_zabicia"];
+				$pieniadze_nagr = $result["pieniadze"];
+			}
+			else {
+				$docelowa_lokacja = $result['id_docelowej_lokacji'];
+				$sql2 = "select x,y from Lokacje where id_lokacji = '$docelowa_lokacja'";
+				$result2 = $conn->query($sql2)->fetch_assoc();
+				$Server->wsSend($clientID, "Masz misję: ".$result["opis"]." o współrzędnych x: ".$result2["x"].", y: ".$result2["y"]." ");
+				$pieniadze_nagr = $result["pieniadze"];
+			}
+		}
+		else {
+			$Server->wsSend($clientID, "W tej lokacji nie ma zleceniodawcy.");
+		}
+	}
+	else if($pieces[0] == "trenuj") {
+		if($npc != "") {
+			$sql = "select pieniadze from Ekwipunek where id_postaci = (select id_postaci from Postacie where nazwa = '$postac')";
+			$result = $conn->query($sql)->fetch_assoc();
+			$moje_pieniadze = $result['pieniadze'];
+			if($moje_pieniadze >= 100) {
+				if($pieces[1] == "atak") {
+					$sql = "update Statystyka set atak = atak+1 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac')";
+					$conn->query($sql);
+					$sql = "update Ekwipunek set pieniadze=pieniadze-100 where id_postaci = (select id_postaci from Postacie where nazwa='$postac')";
+                    $conn->query($sql);
+					$Server->wsSend($clientID, "".$npc." pokazał ci nowe ofensywne techniki walki. Zdobyłeś +1 do ataku.");
+				}
+				else if($pieces[1] == "obrona") {
+					$sql = "update Statystyka set obrona = obrona+1 where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac')";
+					$conn->query($sql);
+					$sql = "update Ekwipunek set pieniadze=pieniadze-100 where id_postaci = (select id_postaci from Postacie where nazwa='$postac')";
+                    $conn->query($sql);
+					$Server->wsSend($clientID, "".$npc." pokazał ci nowe defensywne techniki walki. Zdobyłeś +1 do obrony.");
+				}
+				else {
+					$Server->wsSend($clientID, "Możesz trenować jedynie atak lub obronę.");
+				}
+			}
+			else {
+				$Server->wsSend($clientID, "Nie posiadasz wystarczającej ilości pieniędzy. Potrzebujesz 100 monet, by moć trenować.");
+			}
+		}
+		else {
+			$Server->wsSend($clientID, "W tej lokacji nie ma cię kto trenować.");
+		}
+	}
+	else if($pieces[0] == "wylecz") {
+		if($npc != "") {
+			if(ctype_digit(strval($pieces[1]))) {
+				$nowe_zycie = $pieces[1];
+				if($nowe_zycie <= 100) {
+					$sql = "select hp from Statystyka where id_statystyki = (select id_statystyki from Postacie where nazwa = '$postac')";
+					$result = $conn->query($sql)->fetch_assoc();
+					$moje_zycie = $result['hp'];
+					if ($moje_zycie < $nowe_zycie) {
+						$cena = ($nowe_zycie - $moje_zycie)*2;
+						$sql = "select pieniadze from Ekwipunek where id_postaci = (select id_postaci from Postacie where nazwa = '$postac')";
+						$result = $conn->query($sql)->fetch_assoc();
+						if($result >= $cena) {
+							$sql = "update Statystyka set hp = '$nowe_zycie' where id_statystyki = (select id_statystyki from Postacie where nazwa='$postac')";
+							$conn->query($sql);
+							$sql = "update Ekwipunek set pieniadze=pieniadze-'$cena' where id_postaci = (select id_postaci from Postacie where nazwa='$postac')";
+							$conn->query($sql);
+							$Server->wsSend($clientID, "Zostałeś wyleczony. Posiadasz ".$nowe_zycie." punktów zdrowia.");
+						}
+						else {
+							$Server->wsSend($clientID, "Nie posiadasz wystarczającej ilości pieniędzy. Potrzebujesz 2 monety, na każdy wyleczony punkt zdrowia.");
+						}
+					}
+					else {
+						$Server->wsSend($clientID, "Już masz tyle zdrowia.");
+					}
+				}
+				else {
+					$Server->wsSend($clientID, "Możesz zostać wyleczony jedynie do 100 punktów zdrowia.");
+				}
+			}
+			else {
+				$Server->wsSend($clientID, "Po komendzie wylecz musisz podać liczbę naturalną nie większą niż 100, do której chcesz być wyleczony.");
+			}
+		}
+		else {
+			$Server->wsSend($clientID, "W tej lokacji nie ma cię kto trenować.");
+		}
+	}
+	else if($pieces[0] == "misja") {
+		if($id_misji != 0) {
+			$sql = "select * from Misje where id_misji = '$id_misji'";
+			$result = $conn->query($sql)->fetch_assoc();
+			if($result['id_potwora_do_zabicia']) {
+				$Server->wsSend($clientID, "Masz misję: ".$result["opis"].", pokonaj ".$ilosc_potworow." potworów o nazwie ".$potwor_do_zabicia.", pieniadze ".$pieniadze_nagr."");
+			}
+			else {
+				$sql2 = "select x,y from Lokacje where id_lokacji = '$docelowa_lokacja'";
+				$result2 = $conn->query($sql2)->fetch_assoc();
+				$Server->wsSend($clientID, "Masz misję: ".$result["opis"]." o współrzędnych x: ".$result2["x"].", y: ".$result2["y"]." ");
+			}
+		}
+		else {
+			$Server->wsSend($clientID, "Nie masz obecnie żadnej misji.");
+		}
+	}
 	else if($pieces[0] == "komendy") {
 		$Server->wsSend($clientID, "postac ... - loguje na daną postać bądź tworzy nową, jeśli dana postać nie istnieje");
 		$Server->wsSend($clientID, "n, e, s, w - poruszanie się postaci");
 		$Server->wsSend($clientID, "walcz ... - rozpoczyna walkę z danym potworem");
+		$Server->wsSend($clientID, "info - wyświetla informację o twojej postaci");
+		$Server->wsSend($clientID, "wez misje - rozpoczyna nową misję, jeśli w lokacji jest zleceniodawca");
+		$Server->wsSend($clientID, "trenuj ... - trenuje atak lub obronę, jeśli w lokacji jest NPC");
+		$Server->wsSend($clientID, "misja - wyświetla obecną misję, jeśli istnieje");
+		$Server->wsSend($clientID, "opis - wyświetla informacje o obecnej lokacji");
 		$Server->wsSend($clientID, "wyloguj - wylogowuje obecną postać");
+	}
+	else if($pieces[0] == "opis") {
+		$sql = "select opis from Lokacje where x = '$x' and y = '$y'";
+		$result = $conn->query($sql)->fetch_assoc();
+		$kierunki = mozliweKierunki($conn, $x, $y);
+		$Server->wsSend($clientID, "Jesteś w ".$opis."");
+		if($id_potw != 0){
+			$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
+		}
+		if(npc != "") {
+			if($zleceniodawca) {
+				$Server->wsSend($clientID, "Znajduje się tu również NPC: $npc (zleceniodawca)");
+			}
+			else {
+				$Server->wsSend($clientID, "Znajduje się tu również NPC: $npc");
+			}
+		}
+		$Server->wsSend($clientID, "Możliwe kierunki: ".$kierunki."");
 	}
 	else{
 		$Server->wsSend($clientID, "Nie ma takiej komendy");
@@ -258,9 +414,13 @@ function wejscieDoLokacji($conn, $x, $y, $postac, $clientID): void {
 	global $nazwa_potwora;
     global $potwor_do_zabicia;
     global $ilosc_potworow;
-    global $pieniadze;
+    global $pieniadze_nagr;
 	global $opis;
 	global $kierunki;
+	global $npc;
+	global $zleceniodawca;
+	global $docelowa_lokacja;
+	global $id_potw;
     
 	$sql = "select id_lokacji, opis from Lokacje where x = '$x' and y = '$y'";
 	$result = $conn->query($sql)->fetch_assoc();
@@ -286,6 +446,14 @@ function wejscieDoLokacji($conn, $x, $y, $postac, $clientID): void {
 		$nazwa = $result['nazwa'];
 	}
 	$kierunki = mozliweKierunki($conn, $x, $y);
+	if($id_lok == $docelowa_lokacja) {
+        echo "Wygrałeś\n\n";
+        $docelowa_lokacja = 0;
+		$id_misji = 0;
+        $Server->wsSend($clientID, "Wypełniłeś misję. Dostajesz pieniądze: $pieniadze_nagr");
+        $sql = "update Ekwipunek set pieniadze=pieniadze+$pieniadze_nagr where id_postaci= (select id_postaci from Postacie where nazwa='$postac')";
+        $conn->query($sql);
+    }
 	$Server->wsSend($clientID, "Jesteś w ".$opis."");
 	if($id_potw != 0){
 		$Server->wsSend($clientID, "Znajduje się tu również: ".$nazwa."");
@@ -299,16 +467,18 @@ function wejscieDoLokacji($conn, $x, $y, $postac, $clientID): void {
 	if($result->num_rows > 0) {
 		$row = $result->fetch_assoc();
 		$npc = $row["nazwa"];
-		$Server->wsSend($clientID, "Znajduje się tu również NPC: $npc");
 	    if($row["zleceniodawca"]) {
-	        $sql = "select m.*, p.nazwa from Misje m join Potwory p on m.id_potwora_do_zabicia=p.id_potwora";
-	        $result = $conn->query($sql)->fetch_assoc();
-	        $Server->wsSend($clientID, "Masz misję: ".$result["opis"].", ".$result["ilosc_do_zabicia"]." potworów o nazwie ".$result["nazwa"].", pieniadze ".$result["pieniadze"]);
-	        $potwor_do_zabicia = $result["nazwa"];
-	        $ilosc_potworow = $result["ilosc_do_zabicia"];
-	        $pieniadze = $result["pieniadze"];
+			$zleceniodawca = true;
+			$Server->wsSend($clientID, "Znajduje się tu również NPC: $npc (zleceniodawca)");
         }
+		else {
+			$zleceniodawca = false;
+			$Server->wsSend($clientID, "Znajduje się tu również NPC: $npc");
+		}
     }
+	else {
+		$npc = "";
+	}
 	$Server->wsSend($clientID, "Możliwe kierunki: ".$kierunki."");
 }
 function mozliweKierunki($conn, $x, $y) {
