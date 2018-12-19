@@ -262,6 +262,8 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 	}
 	else if($pieces[0] == "wez" && $pieces[1] == "misje") {
 		if($zleceniodawca) {
+			$docelowa_lokacja = 0;
+			$potwor_do_zabicia = "";
 			$sql = "select max(id_misji) as max_id from Misje";
 			$result = $conn->query($sql)->fetch_assoc();
 			$id_misji = rand(1, $result['max_id']);
@@ -280,7 +282,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 				$docelowa_lokacja = $result['id_docelowej_lokacji'];
 				$sql2 = "select x,y from Lokacje where id_lokacji = '$docelowa_lokacja'";
 				$result2 = $conn->query($sql2)->fetch_assoc();
-				$Server->wsSend($clientID, "Masz misję: ".$result["opis"]." o współrzędnych x: ".$result2["x"].", y: ".$result2["y"]." ");
+				$Server->wsSend($clientID, "Masz misję: ".$result["opis"]." o współrzędnych x: ".$result2["x"].", y: ".$result2["y"].", pieniadze ".$result["pieniadze"]."");
 				$pieniadze_nagr = $result["pieniadze"];
 			}
 		}
@@ -369,7 +371,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 			else {
 				$sql2 = "select x,y from Lokacje where id_lokacji = '$docelowa_lokacja'";
 				$result2 = $conn->query($sql2)->fetch_assoc();
-				$Server->wsSend($clientID, "Masz misję: ".$result["opis"]." o współrzędnych x: ".$result2["x"].", y: ".$result2["y"]." ");
+				$Server->wsSend($clientID, "Masz misję: ".$result["opis"]." o współrzędnych x: ".$result2["x"].", y: ".$result2["y"].", pieniadze ".$result["pieniadze"]."");
 			}
 		}
 		else {
