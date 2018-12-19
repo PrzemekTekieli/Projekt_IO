@@ -1,0 +1,46 @@
+Szkielet dokumentacji technicznej dla "gry sieciowej"
+
+1. Wymagania programu
+	Program "Gra sieciowa" do poprawnego działania wymaga pobrania plików z grą, a także urządzeń na których tą grę można uruchomić:
+	- jednego komputera spełniającego rolę serwera, z zainstalowanym serwerem www oraz bazą danych. Stosowanym przez nas serwerem www jest Apache, a bazą danych PostgreSQL, jednak program jest również kompatybilny z bazą danych mysql.
+	- co najmniej jednego komputera będącego klientem, z działająca przeglądarką (polecany firefox lub chrome) na którym będzię można uruchomić grę
+	
+	Gra została stworzona z myślą o sieciach lokalnych, dlatego nie wymaga internetu, jednak wszystkie komputery muszą znajdować się w tej samej sieci.
+2. Architektura systemu
+	System wykorzystuje znany wzorzec architektoniczny Model-Widok-Kontroler (Model-View-Controller) - MVC. W naszym systemie będą wyodrębnione 3 komponenty:
+	- interfejs użytkownika
+	- logika sterowania
+	- model danych
+	Zaletą jest odseparowanie części widocznej przez użytkownika od logiki systemu oraz sposobu przechowywania danych. System w naturalny sposób dzieli się na dwie części, pierwszą z nich jest część grywalna, a drugą edytor, obie części wykorzystują wzorzec MVC.
+	
+	a) Model MVC dla części grywalnej
+		Widokiem jest ćżęść strony widoczna przez klienta, "terminal" wyświetlający informacje otrzymane z serwera, i pozwalający wysyłać własne polecenia. Każdy komputer kliencki może za sprawą tego interfejsu połączyćsię z kontrolerem.
+		
+		Kontroler to część programu będącego na serwerze, służy on za wysyłanie informacji do widoków oraz za przetwarzanie otrzymanych od nich poleceń w celu sprawdzenia ich poprawności i przesłania odpowiednich komunikatów do modelu. Kontroler z widokiem łączy się przy pomocy socketu, co zapewnia możliwość obustronnej komunikacji.
+		
+		Modelem jest baza danych, w której znajdują się wszystkie informacje o grze. Kontroler łączy się z modelem przesyłając zapytania SQL, a baza danych zwraca rezultaty tych zapytań, które po przetworzeniu przez kontroler trafią do widoku.
+		
+	b) Model MVC dla edytora
+		Widokiem jest strona html wyświetlająca przyciski oraz formularz edycji danych, które można zmienić. Dane są pobierane z bazy danych za pośrednictwem kontrolera, tak samo zmiany są wysyłane poprzez kontroler. Komunikacja z kontrolerem następuje przy użyciu AJAX-a, przez który wysyłane i zwracane są obiekty w formacie JSON
+		
+		Kontroler jest pośrednikiem do wymiany danych między widokiem a modelem, zajmuje się przetwarzaniem danych otrzymanych od widoku, aby móc je przesłać do modelu, oraz tych z modelu, które potem są przesyłane do widoku. Komunikaty do modelu wysyłane są w postaci zapytań SQL
+		
+		Model to baza danych, ta sama która używana jest w części grywalnej, działa na tej samej zasadzie jak opisana w części 2 a
+		
+3. Podział na moduły
+	Zarówno część grywalna, jak i edytor podzielone są na moduły, przede wszystkim odpowiadające architekturze MVC. Moduły te możnaby podzielić na:
+	- moduł widoku - składają się na niego pliki html, css, javascript, przy użyciu których zbudowany jest widok, html zapewnia ogólną strukturę pliku, css pozwala na ostylowanie elementów html-a, a javascript jest odpowiedzialny za komunikację z serwerem, czyli za połączenie socketowe, lub w przypadku edytora za połączenie AJAX-owe
+	
+	- moduł kontrolera - to najbardziej rozbudowany moduł, w którym można wyróżnić kilka podmodułów, odpowiedzialnych za poszczególne działania. Pliki które są tu użyte to głównie pliki php, które analizują polecenia otrzymane od widoku, i na ich podstawie pobierają odpowiednie dane z modelu, które potem po przetworzeniu wysyłają do widoku
+
+	- moduł danych - pliki które należą do tego modułu to również pliki php, jednak ich rolą jest bezpośrednie połączenie z modelem, czyli z bazą danych. Można tu znaleźć klasę pozwalającą łączyć się zarówno z bazą mysql, jak i postgreSQL, która zapewnia metody do pobierania i aktualizacji danych w bazie
+	
+4. Istotne interfejsy
+	System udostępnia dwa interfejsy:
+	- interfejs gracza - jest wykorzystywany przez zwykłego użytkownika. Za jego sprawą użytkownik taki może łączyć się z serwerem i grać w grę, może stworzyć postać, zalogować się, i wypisywać komendy. Połączenie jest nazwiązywane za pomocą socketów, co pozwala na wysyłanie informacji bezpośrednio z interfejsu do socketu będącego na serwerze, jak również pozwala na wysyłanie informacji z serwera do użytkownika, przy czym nie musi informacja ta nie musi być bezpośrednio powiązana z działaniem użytkownika.
+	
+	- interfejs edytora - wykorzystywany przez uprawnione osoby, pozwala na modyfikację parametrów gry oraz innych ustawień świata. Prezentowany w formie przycisków i formularza. Łączy się z kontrolerem przy użyciu AJAX-a. Dane które są otrzymywane przez serwer wpływają na widok interfejsu, i na to co można w nim zrobić (np. gdy wybierzemy kategorię do edycji, to powiają się konkretne elementy tej kategorii, które można edytować)
+	
+5. Struktura bazy danych
+	
+6. Opis istotnych funkcji programu
