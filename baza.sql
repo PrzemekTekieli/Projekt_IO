@@ -135,7 +135,7 @@ insert into Postacie (id_gracza, id_lokacji, id_statystyki, nazwa) values
 (3, 2, 4, 'Lars'),
 (2, 3, 5, 'Eldric');
 
-insert into Ekwipunek (id_ekwipunku, id_postaci, pieniadze) values
+insert into Ekwipunek (id_postaci, pieniadze) values
 (1, 2500),
 (2, 100),
 (3, 42),
