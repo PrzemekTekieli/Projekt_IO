@@ -358,7 +358,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary) {
 			}
 		}
 		else {
-			$Server->wsSend($clientID, "W tej lokacji nie ma cię kto trenować.");
+			$Server->wsSend($clientID, "W tej lokacji nie ma cię kto wyleczyć.");
 		}
 	}
 	else if($pieces[0] == "misja") {
