@@ -1,7 +1,8 @@
 <?php
 require 'class.PHPWebSocket.php';
-// Funkcja będzie wywoływana przy każdej przychodzącej wiadomości
-$conn = new mysqli("localhost", "root", "", "projekt");
+require 'connection.php';
+
+$conn = new my_connection();
 $logged = false;
 $player = "";
 $postac = "";
@@ -10,8 +11,6 @@ $potwor_do_zabicia = "";
 $ilosc_potworow = 0;
 $pieniadze_nagr = 0;
 $docelowa_lokacja = 0;
-if ($conn->connect_error)
-    die("Connection failed: " . $conn->connect_error);
     
 function wsOnMessage($clientID, $message, $messageLength, $binary) {
     global $Server;
