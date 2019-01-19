@@ -23,7 +23,6 @@ class my_connection{
 	
 	//używając naszego połączenia, wysyłamy otrzymane zapytanie do postgresa i zwracamy wynik
 	public function query($query){
-		//return pg_query($this->conn, $query);
         return new my_result(pg_query($this->conn, $query));
 	}
 	
